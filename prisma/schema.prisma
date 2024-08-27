@@ -1,0 +1,60 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Provinsi {
+  id        Int         @id @default(autoincrement())
+  name      String      @db.VarChar(100)
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+  Kabupaten Kabupaten[]
+
+  @@map("provinsi")
+}
+
+model Kabupaten {
+  id         Int         @id @default(autoincrement())
+  name       String      @db.VarChar(150)
+  provinsi   Provinsi    @relation(fields: [provinsiId], references: [id])
+  provinsiId Int         @map("provinsi_id")
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+  Kecamatan  Kecamatan[]
+
+  @@map("kabupaten")
+}
+
+model Kecamatan {
+  id          Int         @id @default(autoincrement())
+  name        String      @db.VarChar(150)
+  kabupaten   Kabupaten   @relation(fields: [kabupatenId], references: [id])
+  kabupatenId Int         @map("kabupaten_id")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  Kelurahan   Kelurahan[]
+
+  @@map("kecamatan")
+}
+
+model Kelurahan {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(150)
+  zipCode     String?   @map("zip_code") @db.VarChar(5)
+  kecamatan   Kecamatan @relation(fields: [kecamatanId], references: [id])
+  kecamatanId Int       @map("kecamatan_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("kelurahan")
+}
