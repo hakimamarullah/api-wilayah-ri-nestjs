@@ -5,4 +5,6 @@ export class ProvinsiResponse {
   nama: string;
   jumlahKabupaten: number;
   kabupaten: Kabupaten[];
+  createdAt: Date;
+  updatedAt: Date;
 }

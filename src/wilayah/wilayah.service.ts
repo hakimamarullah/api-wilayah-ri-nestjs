@@ -53,7 +53,9 @@ export class WilayahService {
       const provinceResponse = new ProvinsiResponse();
       provinceResponse.id = item.id;
       provinceResponse.nama = item.name;
-      provinceResponse.jumlahKabupaten = item._count.Kabupaten;
+      provinceResponse.jumlahKabupaten = (item as any)._count.Kabupaten;
+      provinceResponse.createdAt = item.createdAt;
+      provinceResponse.updatedAt = item.updatedAt;
       return provinceResponse;
     });
     return response;
