@@ -1,5 +1,6 @@
-import moment from 'moment-timezone';
+import * as moment from 'moment-timezone';
 
-export const getZonedDateTime = (date: Date): Date => {
-  return moment.tz(date, 'Asia/Jakarta').toDate();
+export const getZonedDateTime = (): Date => {
+  moment.tz.setDefault('Asia/Jakarta');
+  return new Date(moment.now().valueOf());
 };
