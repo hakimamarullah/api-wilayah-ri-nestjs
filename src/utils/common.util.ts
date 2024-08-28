@@ -3,7 +3,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { HttpStatus } from '@nestjs/common';
 import { getPrismaErrorMessage } from './prisma.util';
 
-export const getErrorResponse = (err: any, defaultMessage: string) => {
+export const translatePrismaError = (err: any, defaultMessage: string) => {
   const response: ApiResponse = new ApiResponse();
   response.responseMessage = defaultMessage;
   if (err instanceof PrismaClientKnownRequestError) {

@@ -3,7 +3,7 @@ export const getPrismaErrorMessage = (error: any): string => {
     case 'P2002':
       return `Duplicate entry for attribute ${error.meta.target} of ${error.meta?.modelName}`;
     case 'P2025':
-      return `Record not found for ${error.meta.target}`;
+      return `${error.meta.cause} Model: ${error.meta.modelName}`;
     case 'P2003':
       return `Cannot delete or update a parent row: a foreign key constraint fails`;
     default:
