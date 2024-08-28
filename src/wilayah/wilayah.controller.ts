@@ -69,7 +69,7 @@ export class WilayahController {
 
   @Post('kabupaten')
   async createBatchKabupaten(
-    @Body()
+    @Body(new ParseArrayPipe({ items: KabupatenDto }))
     kabupatenDtos: KabupatenDto[],
     @Res() res: Response,
   ) {
@@ -100,7 +100,7 @@ export class WilayahController {
 
   @Post('kecamatan')
   async createBatchKecamatan(
-    @Body(new ParseArrayPipe({ items: KabupatenDto }))
+    @Body(new ParseArrayPipe({ items: KecamatanDto }))
     kecamatanDtos: KecamatanDto[],
     @Res() res: Response,
   ) {

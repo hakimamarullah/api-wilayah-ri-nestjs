@@ -1,13 +1,14 @@
-import { IsNumber, ValidateIf } from 'class-validator';
+import { IsNotEmpty, IsNumber } from 'class-validator';
 
 export class KabupatenDto {
   id: number;
 
-  @ValidateIf(
-    (o, value) => value !== null && value !== undefined && value !== '',
-  )
+  @IsNotEmpty({ message: 'name is required' })
   name: string;
 
-  @IsNumber()
+  @IsNumber(
+    { allowNaN: false, allowInfinity: false },
+    { message: 'provinsiId must be a number' },
+  )
   provinsiId: number;
 }
