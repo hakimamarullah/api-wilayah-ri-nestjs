@@ -1,13 +1,17 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { CacheConstant } from './cache.constant';
 
 @Injectable()
 export class CachingService {
   private readonly logger: Logger = new Logger(CachingService.name);
   constructor(@Inject(CACHE_MANAGER) readonly cacheManager: Cache) {}
 
-  async getDataOrElseReturn(key: string, defaultGetter: () => any) {
+  async getDataOrElseReturn(
+    key: string,
+    defaultGetter: () => any,
+  ): Promise<any> {
     let data;
     try {
       data = (await this.cacheManager.get(key)) as any;
@@ -21,5 +25,26 @@ export class CachingService {
       this.logger.error(`Error getting data from cache: ${error.message}`);
     }
     return data;
+  }
+  async resetAllValuesKeyStartWith(prefix: string): Promise<void> {
+    const allKeys: string[] =
+      (await this.cacheManager.store.keys(prefix)) ?? [];
+    await this.cacheManager.store.mdel(...allKeys);
+  }
+
+  async resetProvinsi() {
+    await this.resetAllValuesKeyStartWith(CacheConstant.CacheKey.PROVINSI);
+  }
+
+  async resetKabupaten() {
+    await this.resetAllValuesKeyStartWith(CacheConstant.CacheKey.KABUPATEN);
+  }
+
+  async resetKecamatan() {
+    await this.resetAllValuesKeyStartWith(CacheConstant.CacheKey.KECAMATAN);
+  }
+
+  async resetKelurahan() {
+    await this.resetAllValuesKeyStartWith(CacheConstant.CacheKey.KELURAHAN);
   }
 }

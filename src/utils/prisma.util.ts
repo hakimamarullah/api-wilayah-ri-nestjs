@@ -1,5 +1,4 @@
 export const getPrismaErrorMessage = (error: any): string => {
-  console.log({ meta: error.meta, code: error.code, message: error.message });
   switch (error.code) {
     case 'P2002':
       return `Duplicate entry for attribute ${error.meta.target} of ${error.meta?.modelName}`;

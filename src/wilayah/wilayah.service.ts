@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ProvinsiDto } from './dto/provinsi.dto';
-import { Kabupaten, Prisma } from '@prisma/client';
+import { Kabupaten } from '@prisma/client';
 import { PrismaService } from '../prismadb/prisma.service';
 import { ApiResponse } from '../dto/apiResponse.dto';
 import { ProvinsiResponse } from './dto/response/provinsi.response';
@@ -18,6 +18,7 @@ import { KecamatanDto } from './dto/kecamatan.dto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { CachingService } from '../caching/caching.service';
+import { CacheConstant } from '../caching/cache.constant';
 
 @Injectable()
 export class WilayahService {
@@ -28,23 +29,14 @@ export class WilayahService {
   ) {}
 
   async createBatchProvinsi(provinsiDtos: ProvinsiDto[]): Promise<ApiResponse> {
-    const provinces = provinsiDtos.map((item) => {
-      const provinsi: Prisma.ProvinsiCreateInput = {
-        name: item.name,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      return provinsi;
-    });
-
     const response: ApiResponse = ApiResponse.getSuccessResponse();
     response.responseCode = HttpStatus.CREATED;
 
     response.responseData =
       await this.prismaService.provinsi.createManyAndReturn({
-        data: provinces,
+        data: provinsiDtos,
       });
-
+    void this.cachingService.resetProvinsi();
     return response;
   }
 
@@ -62,7 +54,7 @@ export class WilayahService {
       });
     };
     const data = await this.cachingService.getDataOrElseReturn(
-      'all-provinsi',
+      CacheConstant.CacheKey.PROVINSI_ALL,
       provinces,
     );
     response.responseData = data?.map((item: any) => {
@@ -107,18 +99,17 @@ export class WilayahService {
       throw new NotFoundException('Data tidak ditemukan');
     }
 
-    const provinsiResult = provinsi as any;
     const provinsiResponse: ProvinsiResponse = new ProvinsiResponse();
-    const kabupaten: Kabupaten[] = provinsiResult.Kabupaten ?? [];
+    const kabupaten: Kabupaten[] = provinsi.Kabupaten ?? [];
 
-    provinsiResponse.id = provinsiResult.id;
-    provinsiResponse.nama = provinsiResult.name;
+    provinsiResponse.id = provinsi.id;
+    provinsiResponse.nama = provinsi.name;
     provinsiResponse.kabupaten = kabupaten.map((item: any) =>
       KabupatenResponse.toResponse(item),
     );
     provinsiResponse.jumlahKabupaten = provinsiResponse.kabupaten.length;
-    provinsiResponse.createdAt = provinsiResult.createdAt;
-    provinsiResponse.updatedAt = provinsiResult.updatedAt;
+    provinsiResponse.createdAt = provinsi.createdAt;
+    provinsiResponse.updatedAt = provinsi.updatedAt;
     response.responseData = provinsiResponse;
 
     return response;
@@ -131,6 +122,7 @@ export class WilayahService {
         id: provinceId,
       },
     });
+    void this.cachingService.resetProvinsi();
     return response;
   }
 
@@ -143,6 +135,7 @@ export class WilayahService {
         },
       },
     });
+    void this.cachingService.resetProvinsi();
     return response;
   }
 
@@ -150,28 +143,17 @@ export class WilayahService {
     kabupatenDtos: KabupatenDto[],
   ): Promise<ApiResponse> {
     const response: ApiResponse = ApiResponse.getSuccessResponse();
-    const kabupaten: Prisma.KabupatenCreateManyInput[] = kabupatenDtos.map(
-      (item) => {
-        const kabupaten: Prisma.KabupatenCreateManyInput = {
-          name: item.name,
-          provinsiId: item.provinsiId,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-        return kabupaten;
-      },
-    );
-    const kabupatens = await this.prismaService.kabupaten.createManyAndReturn({
-      data: kabupaten,
+    const dbResult = await this.prismaService.kabupaten.createManyAndReturn({
+      data: kabupatenDtos,
     });
-    response.responseData = kabupatens?.map((item) => {
+    response.responseData = dbResult?.map((item) => {
       const kabupatenResponse = new KabupatenDto();
       kabupatenResponse.id = item.id;
       kabupatenResponse.name = item.name;
       kabupatenResponse.provinsiId = item.provinsiId;
       return kabupatenResponse;
     });
-
+    void this.cachingService.resetKabupaten();
     return response;
   }
 
@@ -192,7 +174,7 @@ export class WilayahService {
       });
     };
     const kabupaten = await this.cachingService.getDataOrElseReturn(
-      `kabupaten-${kabupatenId}`,
+      `${CacheConstant.CacheKey.KABUPATEN}-${kabupatenId}`,
       getKabupaten,
     );
     if (!kabupaten) {
@@ -210,6 +192,7 @@ export class WilayahService {
         id: kabupatenId,
       },
     });
+    void this.cachingService.resetKabupaten();
     return response;
   }
 
@@ -217,25 +200,15 @@ export class WilayahService {
     kecamatanDtos: KecamatanDto[],
   ): Promise<ApiResponse> {
     const response: ApiResponse = ApiResponse.getSuccessResponse();
-    const kecamatan: Prisma.KecamatanCreateManyInput[] = kecamatanDtos.map(
-      (item) => {
-        const kecamatan: Prisma.KecamatanCreateManyInput = {
-          name: item.name,
-          kabupatenId: item.kabupatenId,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-        return kecamatan;
-      },
-    );
     const insertedData = await this.prismaService.kecamatan.createManyAndReturn(
       {
-        data: kecamatan,
+        data: kecamatanDtos,
       },
     );
     response.responseData = insertedData?.map((item) => {
       KecamatanResponse.toResponse(item);
     });
+    void this.cachingService.resetKecamatan();
     return response;
   }
 
@@ -253,7 +226,7 @@ export class WilayahService {
     };
 
     const kecamatan = await this.cachingService.getDataOrElseReturn(
-      `kecamatan-${kecamatanId}`,
+      `${CacheConstant.CacheKey.KECAMATAN}-${kecamatanId}`,
       getKecamatan,
     );
 
@@ -271,6 +244,7 @@ export class WilayahService {
         id: kecamatanId,
       },
     });
+    void this.cachingService.resetKecamatan();
     return response;
   }
 
@@ -278,25 +252,15 @@ export class WilayahService {
     kelurahanDtos: KelurahanDto[],
   ): Promise<ApiResponse> {
     const response: ApiResponse = ApiResponse.getSuccessResponse();
-    const kelurahan: Prisma.KelurahanCreateManyInput[] = kelurahanDtos.map(
-      (item) => {
-        const kelurahan: Prisma.KelurahanCreateManyInput = {
-          name: item.name,
-          kecamatanId: item.kecamatanId,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-        return kelurahan;
-      },
-    );
     const insertedData = await this.prismaService.kelurahan.createManyAndReturn(
       {
-        data: kelurahan,
+        data: kelurahanDtos,
       },
     );
     response.responseData = insertedData?.map((item) => {
       KelurahanResponse.toKelurahanResponse(item);
     });
+    void this.cachingService.resetKelurahan();
     return response;
   }
 
@@ -311,7 +275,7 @@ export class WilayahService {
     };
 
     const kelurahan = await this.cachingService.getDataOrElseReturn(
-      `kelurahan-${kelurahanId}`,
+      `${CacheConstant.CacheKey.KELURAHAN}-${kelurahanId}`,
       getKelurahan,
     );
 
@@ -329,6 +293,7 @@ export class WilayahService {
         id: kelurahanId,
       },
     });
+    void this.cachingService.resetKelurahan();
     return response;
   }
 }

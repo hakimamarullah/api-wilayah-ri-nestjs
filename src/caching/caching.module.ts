@@ -6,7 +6,7 @@ import { CacheModule } from '@nestjs/cache-manager';
   providers: [CachingService],
   exports: [CachingService],
   imports: [
-    CacheModule.register({ isGlobal: true, store: 'memory', ttl: 30000 }),
+    CacheModule.register({ isGlobal: true, store: 'memory', ttl: 60000 }),
   ],
 })
 export class CachingModule {}
