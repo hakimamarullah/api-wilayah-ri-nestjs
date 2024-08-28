@@ -25,36 +25,39 @@ model Provinsi {
 
 model Kabupaten {
   id         Int         @id @default(autoincrement())
-  name       String      @unique @db.VarChar(150)
+  name       String      @db.VarChar(150)
   provinsi   Provinsi    @relation(fields: [provinsiId], references: [id], onDelete: Cascade)
   provinsiId Int         @map("provinsi_id")
   createdAt  DateTime    @default(now()) @map("created_at")
   updatedAt  DateTime    @updatedAt @map("updated_at")
   Kecamatan  Kecamatan[]
 
+  @@unique([name, provinsiId])
   @@map("kabupaten")
 }
 
 model Kecamatan {
   id          Int         @id @default(autoincrement())
-  name        String      @unique @db.VarChar(150)
+  name        String      @db.VarChar(150)
   kabupaten   Kabupaten   @relation(fields: [kabupatenId], references: [id], onDelete: Cascade)
   kabupatenId Int         @map("kabupaten_id")
   createdAt   DateTime    @default(now()) @map("created_at")
   updatedAt   DateTime    @updatedAt @map("updated_at")
   Kelurahan   Kelurahan[]
 
+  @@unique([name, kabupatenId])
   @@map("kecamatan")
 }
 
 model Kelurahan {
   id          Int       @id @default(autoincrement())
-  name        String    @unique @db.VarChar(150)
+  name        String    @db.VarChar(150)
   zipCode     String?   @map("zip_code") @db.VarChar(5)
   kecamatan   Kecamatan @relation(fields: [kecamatanId], references: [id], onDelete: Cascade)
   kecamatanId Int       @map("kecamatan_id")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
+  @@unique([name, kecamatanId])
   @@map("kelurahan")
 }

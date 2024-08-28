@@ -1,7 +1,16 @@
+import { IsNumber, ValidateIf } from 'class-validator';
+
 export class KecamatanDto {
   private _id: number;
+
+  @ValidateIf(
+    (o, value) => value !== null && value !== undefined && value !== '',
+  )
   private _name: string;
+
+  @IsNumber()
   private _kabupatenId: number;
+
   private _zipCode: string;
 
   get zipCode(): string {

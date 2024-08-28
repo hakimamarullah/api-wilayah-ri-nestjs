@@ -1,17 +1,29 @@
 import { ApiResponse } from '../dto/apiResponse.dto';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import {
+  PrismaClientKnownRequestError,
+  PrismaClientValidationError,
+} from '@prisma/client/runtime/library';
 import { HttpStatus } from '@nestjs/common';
 import { getPrismaErrorMessage } from './prisma.util';
 
-export const translatePrismaError = (err: any, defaultMessage: string) => {
+export const translatePrismaError = (err: Error, defaultMessage: string) => {
   const response: ApiResponse = new ApiResponse();
   response.responseMessage = defaultMessage;
-  if (err instanceof PrismaClientKnownRequestError) {
-    response.responseCode = HttpStatus.BAD_REQUEST;
-    response.responseData = getPrismaErrorMessage(err);
-  } else {
-    response.responseCode = HttpStatus.INTERNAL_SERVER_ERROR;
-    response.responseData = err.message;
+  switch (err.name) {
+    case PrismaClientKnownRequestError.name:
+      response.responseCode = HttpStatus.BAD_REQUEST;
+      response.responseData = getPrismaErrorMessage(err);
+      break;
+    case PrismaClientValidationError.name:
+      response.responseCode = HttpStatus.BAD_REQUEST;
+      const messages = err.message.split('\n');
+      response.responseData =
+        messages[messages.length - 1]?.trim() ??
+        PrismaClientValidationError.name;
+      break;
+    default:
+      response.responseCode = HttpStatus.INTERNAL_SERVER_ERROR;
+      break;
   }
   return response;
 };

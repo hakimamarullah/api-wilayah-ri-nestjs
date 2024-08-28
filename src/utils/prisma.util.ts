@@ -1,11 +1,12 @@
 export const getPrismaErrorMessage = (error: any): string => {
+  console.log({ meta: error.meta, code: error.code, message: error.message });
   switch (error.code) {
     case 'P2002':
       return `Duplicate entry for attribute ${error.meta.target} of ${error.meta?.modelName}`;
     case 'P2025':
       return `${error.meta.cause} Model: ${error.meta.modelName}`;
     case 'P2003':
-      return `Cannot delete or update a parent row: a foreign key constraint fails`;
+      return `Foreign key constraint failed on the field: ${error.meta['field_name']}`;
     default:
       return 'something went wrong';
   }

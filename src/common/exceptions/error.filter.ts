@@ -10,7 +10,10 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ApiResponse } from '../../dto/apiResponse.dto';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import {
+  PrismaClientKnownRequestError,
+  PrismaClientValidationError,
+} from '@prisma/client/runtime/library';
 import { translatePrismaError } from '../../utils/common.util';
 
 @Catch(Error)
@@ -34,6 +37,7 @@ export class ErrorFilter implements ExceptionFilter<Error> {
       case BadRequestException.name:
         return HttpStatus.BAD_REQUEST;
       case PrismaClientKnownRequestError.name:
+      case PrismaClientValidationError.name:
         return HttpStatus.BAD_REQUEST;
       case NotFoundException.name:
         return HttpStatus.NOT_FOUND;
@@ -46,8 +50,15 @@ export class ErrorFilter implements ExceptionFilter<Error> {
 
   getErrorResponse(e: Error, request: Request): ApiResponse {
     const response: ApiResponse = new ApiResponse();
-    if (e instanceof PrismaClientKnownRequestError) {
+    if (
+      e instanceof PrismaClientKnownRequestError ||
+      e instanceof PrismaClientValidationError
+    ) {
       return translatePrismaError(e, 'Operasi Database Gagal');
+    } else if (e instanceof BadRequestException) {
+      response.responseCode = HttpStatus.BAD_REQUEST;
+      response.responseMessage = e.message;
+      response.responseData = (e.getResponse() as any)?.message;
     } else {
       response.responseCode = this.getResponseCode(e);
       response.responseMessage = e.message;
