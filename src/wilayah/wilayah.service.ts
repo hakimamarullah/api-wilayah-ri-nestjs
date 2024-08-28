@@ -1,4 +1,9 @@
-import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ProvinsiDto } from './dto/provinsi.dto';
 import { Kabupaten, Prisma } from '@prisma/client';
 import { PrismaService } from '../prismadb/prisma.service';
@@ -10,10 +15,17 @@ import { KecamatanResponse } from './dto/response/kecamatan.response';
 import { KelurahanResponse } from './dto/response/kelurahan.response';
 import { KelurahanDto } from './dto/kelurahan.dto';
 import { KecamatanDto } from './dto/kecamatan.dto';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import { CachingService } from '../caching/caching.service';
 
 @Injectable()
 export class WilayahService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+    private prismaService: PrismaService,
+    private cachingService: CachingService,
+  ) {}
 
   async createBatchProvinsi(provinsiDtos: ProvinsiDto[]): Promise<ApiResponse> {
     const provinces = provinsiDtos.map((item) => {
@@ -38,16 +50,22 @@ export class WilayahService {
 
   async getAllProvinsi(): Promise<ApiResponse> {
     const response: ApiResponse = ApiResponse.getSuccessResponse();
-    const provinces = await this.prismaService.provinsi.findMany({
-      include: {
-        _count: {
-          select: {
-            Kabupaten: true, // Count the related kabupatens
+    const provinces = async () => {
+      return this.prismaService.provinsi.findMany({
+        include: {
+          _count: {
+            select: {
+              Kabupaten: true, // Count the related kabupatens
+            },
           },
         },
-      },
-    });
-    response.responseData = provinces?.map((item) => {
+      });
+    };
+    const data = await this.cachingService.getDataOrElseReturn(
+      'all-provinsi',
+      provinces,
+    );
+    response.responseData = data?.map((item: any) => {
       const provinceResponse = new ProvinsiResponse();
       provinceResponse.id = item.id;
       provinceResponse.nama = item.name;
@@ -61,22 +79,29 @@ export class WilayahService {
 
   async getProvinsiDetailsById(provinceId: number): Promise<ApiResponse> {
     const response: ApiResponse = ApiResponse.getSuccessResponse();
-    const provinsi = await this.prismaService.provinsi.findFirst({
-      where: {
-        id: provinceId,
-      },
-      include: {
-        Kabupaten: {
-          include: {
-            Kecamatan: {
-              include: {
-                Kelurahan: true,
+    const getProvinsi = async () => {
+      return this.prismaService.provinsi.findFirst({
+        where: {
+          id: provinceId,
+        },
+        include: {
+          Kabupaten: {
+            include: {
+              Kecamatan: {
+                include: {
+                  Kelurahan: true,
+                },
               },
             },
           },
         },
-      },
-    });
+      });
+    };
+
+    const provinsi = await this.cachingService.getDataOrElseReturn(
+      `provinsi-${provinceId}`,
+      getProvinsi,
+    );
 
     if (!provinsi) {
       throw new NotFoundException('Data tidak ditemukan');
@@ -152,18 +177,24 @@ export class WilayahService {
 
   async getKabupatenDetailsById(kabupatenId: number): Promise<ApiResponse> {
     const response: ApiResponse = ApiResponse.getSuccessResponse();
-    const kabupaten = await this.prismaService.kabupaten.findFirst({
-      where: {
-        id: kabupatenId,
-      },
-      include: {
-        Kecamatan: {
-          include: {
-            Kelurahan: true,
+    const getKabupaten = async () => {
+      await this.prismaService.kabupaten.findFirst({
+        where: {
+          id: kabupatenId,
+        },
+        include: {
+          Kecamatan: {
+            include: {
+              Kelurahan: true,
+            },
           },
         },
-      },
-    });
+      });
+    };
+    const kabupaten = await this.cachingService.getDataOrElseReturn(
+      `kabupaten-${kabupatenId}`,
+      getKabupaten,
+    );
     if (!kabupaten) {
       throw new NotFoundException('Data tidak ditemukan');
     }
@@ -210,14 +241,22 @@ export class WilayahService {
 
   async getKecamatanDetailsById(kecamatanId: number): Promise<ApiResponse> {
     const response: ApiResponse = ApiResponse.getSuccessResponse();
-    const kecamatan = await this.prismaService.kecamatan.findFirst({
-      where: {
-        id: kecamatanId,
-      },
-      include: {
-        Kelurahan: true,
-      },
-    });
+    const getKecamatan = async () => {
+      return this.prismaService.kecamatan.findFirst({
+        where: {
+          id: kecamatanId,
+        },
+        include: {
+          Kelurahan: true,
+        },
+      });
+    };
+
+    const kecamatan = await this.cachingService.getDataOrElseReturn(
+      `kecamatan-${kecamatanId}`,
+      getKecamatan,
+    );
+
     if (!kecamatan) {
       throw new NotFoundException('Data tidak ditemukan');
     }
@@ -263,11 +302,19 @@ export class WilayahService {
 
   async getKelurahanDetailsById(kelurahanId: number): Promise<ApiResponse> {
     const response: ApiResponse = ApiResponse.getSuccessResponse();
-    const kelurahan = await this.prismaService.kelurahan.findFirst({
-      where: {
-        id: kelurahanId,
-      },
-    });
+    const getKelurahan = async () => {
+      return this.prismaService.kelurahan.findFirst({
+        where: {
+          id: kelurahanId,
+        },
+      });
+    };
+
+    const kelurahan = await this.cachingService.getDataOrElseReturn(
+      `kelurahan-${kelurahanId}`,
+      getKelurahan,
+    );
+
     if (!kelurahan) {
       throw new NotFoundException('Data tidak ditemukan');
     }
