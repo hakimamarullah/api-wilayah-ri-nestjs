@@ -1,4 +1,4 @@
-import { ApiResponse } from '../dto/apiResponse.dto';
+import { BaseResponse } from '../dto/baseResponse.dto';
 import {
   PrismaClientKnownRequestError,
   PrismaClientValidationError,
@@ -7,7 +7,7 @@ import { HttpStatus } from '@nestjs/common';
 import { getPrismaErrorMessage } from './prisma.util';
 
 export const translatePrismaError = (err: Error, defaultMessage: string) => {
-  const response: ApiResponse = new ApiResponse();
+  const response: BaseResponse<any> = new BaseResponse();
   response.responseMessage = defaultMessage;
   switch (err.name) {
     case PrismaClientKnownRequestError.name:

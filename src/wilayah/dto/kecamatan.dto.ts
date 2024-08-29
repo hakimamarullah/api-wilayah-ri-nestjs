@@ -1,7 +1,9 @@
-import { IsNotEmpty, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class KecamatanDto {
   id: number;
+
+  @IsString({ message: 'name must be a string' })
   @IsNotEmpty({ message: 'name cannot be empty' })
   name: string;
   @IsNumber(

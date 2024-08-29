@@ -9,7 +9,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { ApiResponse } from '../../dto/apiResponse.dto';
+import { BaseResponse } from '../../dto/baseResponse.dto';
 import {
   PrismaClientKnownRequestError,
   PrismaClientValidationError,
@@ -24,7 +24,10 @@ export class ErrorFilter implements ExceptionFilter<Error> {
     const res = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    const response: ApiResponse = this.getErrorResponse(exception, request);
+    const response: BaseResponse<any> = this.getErrorResponse(
+      exception,
+      request,
+    );
     this.logger.log(
       `[ERROR] PATH: ${request.url} | Response: ${JSON.stringify(response)}`,
     );
@@ -48,8 +51,8 @@ export class ErrorFilter implements ExceptionFilter<Error> {
     }
   }
 
-  getErrorResponse(e: Error, request: Request): ApiResponse {
-    const response: ApiResponse = new ApiResponse();
+  getErrorResponse(e: Error, request: Request): BaseResponse<any> {
+    const response: BaseResponse<any> = new BaseResponse();
     if (
       e instanceof PrismaClientKnownRequestError ||
       e instanceof PrismaClientValidationError

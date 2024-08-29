@@ -7,7 +7,7 @@ import {
 import { ProvinsiDto } from './dto/provinsi.dto';
 import { Kabupaten } from '@prisma/client';
 import { PrismaService } from '../prismadb/prisma.service';
-import { ApiResponse } from '../dto/apiResponse.dto';
+import { BaseResponse } from '../dto/baseResponse.dto';
 import { ProvinsiResponse } from './dto/response/provinsi.response';
 import { KabupatenDto } from './dto/kabupaten.dto';
 import { KabupatenResponse } from './dto/response/kabupaten.response';
@@ -28,20 +28,26 @@ export class WilayahService {
     private cachingService: CachingService,
   ) {}
 
-  async createBatchProvinsi(provinsiDtos: ProvinsiDto[]): Promise<ApiResponse> {
-    const response: ApiResponse = ApiResponse.getSuccessResponse();
+  async createBatchProvinsi(
+    provinsiDtos: ProvinsiDto[],
+  ): Promise<BaseResponse<ProvinsiResponse[]>> {
+    const response: BaseResponse<ProvinsiResponse[]> =
+      BaseResponse.getSuccessResponse<ProvinsiResponse[]>();
     response.responseCode = HttpStatus.CREATED;
 
-    response.responseData =
-      await this.prismaService.provinsi.createManyAndReturn({
-        data: provinsiDtos,
-      });
+    const insertedData = await this.prismaService.provinsi.createManyAndReturn({
+      data: provinsiDtos,
+    });
+    response.responseData = insertedData?.map((item: any) =>
+      ProvinsiResponse.build(item),
+    );
     void this.cachingService.resetProvinsi();
     return response;
   }
 
-  async getAllProvinsi(): Promise<ApiResponse> {
-    const response: ApiResponse = ApiResponse.getSuccessResponse();
+  async getAllProvinsi(): Promise<BaseResponse<ProvinsiResponse[]>> {
+    const response: BaseResponse<ProvinsiResponse[]> =
+      BaseResponse.getSuccessResponse<ProvinsiResponse[]>();
     const provinces = async () => {
       return this.prismaService.provinsi.findMany({
         include: {
@@ -60,7 +66,7 @@ export class WilayahService {
     response.responseData = data?.map((item: any) => {
       const provinceResponse = new ProvinsiResponse();
       provinceResponse.id = item.id;
-      provinceResponse.nama = item.name;
+      provinceResponse.name = item.name;
       provinceResponse.jumlahKabupaten = (item as any)._count.Kabupaten;
       provinceResponse.createdAt = item.createdAt;
       provinceResponse.updatedAt = item.updatedAt;
@@ -69,8 +75,11 @@ export class WilayahService {
     return response;
   }
 
-  async getProvinsiDetailsById(provinceId: number): Promise<ApiResponse> {
-    const response: ApiResponse = ApiResponse.getSuccessResponse();
+  async getProvinsiDetailsById(
+    provinceId: number,
+  ): Promise<BaseResponse<ProvinsiResponse>> {
+    const response: BaseResponse<ProvinsiResponse> =
+      BaseResponse.getSuccessResponse<ProvinsiResponse>();
     const getProvinsi = async () => {
       return this.prismaService.provinsi.findFirst({
         where: {
@@ -91,7 +100,7 @@ export class WilayahService {
     };
 
     const provinsi = await this.cachingService.getDataOrElseReturn(
-      `provinsi-${provinceId}`,
+      `${CacheConstant.CacheKey.PROVINSI}-${provinceId}`,
       getProvinsi,
     );
 
@@ -103,7 +112,7 @@ export class WilayahService {
     const kabupaten: Kabupaten[] = provinsi.Kabupaten ?? [];
 
     provinsiResponse.id = provinsi.id;
-    provinsiResponse.nama = provinsi.name;
+    provinsiResponse.name = provinsi.name;
     provinsiResponse.kabupaten = kabupaten.map((item: any) =>
       KabupatenResponse.toResponse(item),
     );
@@ -115,19 +124,21 @@ export class WilayahService {
     return response;
   }
 
-  async deleteProvinsiById(provinceId: number): Promise<ApiResponse> {
-    const response: ApiResponse = ApiResponse.getSuccessResponse();
-    response.responseData = await this.prismaService.provinsi.delete({
+  async deleteProvinsiById(provinceId: number): Promise<BaseResponse<any>> {
+    const response: BaseResponse<any> = BaseResponse.getSuccessResponse<any>();
+    response.responseData = (await this.prismaService.provinsi.delete({
       where: {
         id: provinceId,
       },
-    });
+    })) as any;
     void this.cachingService.resetProvinsi();
     return response;
   }
 
-  async deleteBatchProvinsiById(provinceIds: number[]): Promise<ApiResponse> {
-    const response: ApiResponse = ApiResponse.getSuccessResponse();
+  async deleteBatchProvinsiById(
+    provinceIds: number[],
+  ): Promise<BaseResponse<any>> {
+    const response: BaseResponse<any> = BaseResponse.getSuccessResponse();
     response.responseData = await this.prismaService.provinsi.deleteMany({
       where: {
         id: {
@@ -141,24 +152,24 @@ export class WilayahService {
 
   async createBatchKabupaten(
     kabupatenDtos: KabupatenDto[],
-  ): Promise<ApiResponse> {
-    const response: ApiResponse = ApiResponse.getSuccessResponse();
+  ): Promise<BaseResponse<KabupatenDto[]>> {
+    const response: BaseResponse<KabupatenDto[]> =
+      BaseResponse.getSuccessResponse<KabupatenDto[]>();
     const dbResult = await this.prismaService.kabupaten.createManyAndReturn({
       data: kabupatenDtos,
     });
-    response.responseData = dbResult?.map((item) => {
-      const kabupatenResponse = new KabupatenDto();
-      kabupatenResponse.id = item.id;
-      kabupatenResponse.name = item.name;
-      kabupatenResponse.provinsiId = item.provinsiId;
-      return kabupatenResponse;
-    });
+    response.responseData = dbResult?.map((item) =>
+      KabupatenDto.build(item),
+    ) as KabupatenDto[];
     void this.cachingService.resetKabupaten();
     return response;
   }
 
-  async getKabupatenDetailsById(kabupatenId: number): Promise<ApiResponse> {
-    const response: ApiResponse = ApiResponse.getSuccessResponse();
+  async getKabupatenDetailsById(
+    kabupatenId: number,
+  ): Promise<BaseResponse<KabupatenResponse>> {
+    const response: BaseResponse<KabupatenResponse> =
+      BaseResponse.getSuccessResponse<KabupatenResponse>();
     const getKabupaten = async () => {
       await this.prismaService.kabupaten.findFirst({
         where: {
@@ -185,35 +196,39 @@ export class WilayahService {
     return response;
   }
 
-  async deleteKabupatenById(kabupatenId: number): Promise<ApiResponse> {
-    const response: ApiResponse = ApiResponse.getSuccessResponse();
-    response.responseData = await this.prismaService.kabupaten.delete({
+  async deleteKabupatenById(kabupatenId: number): Promise<BaseResponse<any>> {
+    const response: BaseResponse<any> = BaseResponse.getSuccessResponse();
+    response.responseData = (await this.prismaService.kabupaten.delete({
       where: {
         id: kabupatenId,
       },
-    });
+    })) as any;
     void this.cachingService.resetKabupaten();
     return response;
   }
 
   async createBatchKecamatan(
     kecamatanDtos: KecamatanDto[],
-  ): Promise<ApiResponse> {
-    const response: ApiResponse = ApiResponse.getSuccessResponse();
+  ): Promise<BaseResponse<KecamatanResponse[]>> {
+    const response: BaseResponse<KecamatanResponse[]> =
+      BaseResponse.getSuccessResponse<KecamatanResponse[]>();
     const insertedData = await this.prismaService.kecamatan.createManyAndReturn(
       {
         data: kecamatanDtos,
       },
     );
-    response.responseData = insertedData?.map((item) => {
-      KecamatanResponse.toResponse(item);
-    });
+    response.responseData = insertedData?.map((item) =>
+      KecamatanResponse.toResponse(item),
+    );
     void this.cachingService.resetKecamatan();
     return response;
   }
 
-  async getKecamatanDetailsById(kecamatanId: number): Promise<ApiResponse> {
-    const response: ApiResponse = ApiResponse.getSuccessResponse();
+  async getKecamatanDetailsById(
+    kecamatanId: number,
+  ): Promise<BaseResponse<KecamatanResponse>> {
+    const response: BaseResponse<KecamatanResponse> =
+      BaseResponse.getSuccessResponse<KecamatanResponse>();
     const getKecamatan = async () => {
       return this.prismaService.kecamatan.findFirst({
         where: {
@@ -237,35 +252,39 @@ export class WilayahService {
     return response;
   }
 
-  async deleteKecamatanById(kecamatanId: number): Promise<ApiResponse> {
-    const response: ApiResponse = ApiResponse.getSuccessResponse();
-    response.responseData = await this.prismaService.kecamatan.delete({
+  async deleteKecamatanById(kecamatanId: number): Promise<BaseResponse<any>> {
+    const response: BaseResponse<any> = BaseResponse.getSuccessResponse<any>();
+    response.responseData = (await this.prismaService.kecamatan.delete({
       where: {
         id: kecamatanId,
       },
-    });
+    })) as any;
     void this.cachingService.resetKecamatan();
     return response;
   }
 
   async createBatchKelurahan(
     kelurahanDtos: KelurahanDto[],
-  ): Promise<ApiResponse> {
-    const response: ApiResponse = ApiResponse.getSuccessResponse();
+  ): Promise<BaseResponse<KelurahanResponse[]>> {
+    const response: BaseResponse<KelurahanResponse[]> =
+      BaseResponse.getSuccessResponse<KelurahanResponse[]>();
     const insertedData = await this.prismaService.kelurahan.createManyAndReturn(
       {
         data: kelurahanDtos,
       },
     );
-    response.responseData = insertedData?.map((item) => {
-      KelurahanResponse.toKelurahanResponse(item);
-    });
+    response.responseData = insertedData?.map((item) =>
+      KelurahanResponse.toKelurahanResponse(item),
+    );
     void this.cachingService.resetKelurahan();
     return response;
   }
 
-  async getKelurahanDetailsById(kelurahanId: number): Promise<ApiResponse> {
-    const response: ApiResponse = ApiResponse.getSuccessResponse();
+  async getKelurahanDetailsById(
+    kelurahanId: number,
+  ): Promise<BaseResponse<KelurahanResponse>> {
+    const response: BaseResponse<KelurahanResponse> =
+      BaseResponse.getSuccessResponse<KelurahanResponse>();
     const getKelurahan = async () => {
       return this.prismaService.kelurahan.findFirst({
         where: {
@@ -286,13 +305,13 @@ export class WilayahService {
     return response;
   }
 
-  async deleteKelurahanById(kelurahanId: number): Promise<ApiResponse> {
-    const response: ApiResponse = ApiResponse.getSuccessResponse();
-    response.responseData = await this.prismaService.kelurahan.delete({
+  async deleteKelurahanById(kelurahanId: number): Promise<BaseResponse<any>> {
+    const response: BaseResponse<any> = BaseResponse.getSuccessResponse<any>();
+    response.responseData = (await this.prismaService.kelurahan.delete({
       where: {
         id: kelurahanId,
       },
-    });
+    })) as any;
     void this.cachingService.resetKelurahan();
     return response;
   }

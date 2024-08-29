@@ -1,11 +1,23 @@
 import { KelurahanResponse } from './kelurahan.response';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class KecamatanResponse {
+  @ApiProperty()
   id: number;
+
+  @ApiProperty()
   nama: string;
+
+  @ApiProperty()
   jumlahKelurahan: number;
+
+  @ApiProperty({ isArray: true, type: [KelurahanResponse] })
   kelurahan: KelurahanResponse[];
+
+  @ApiProperty()
   createdAt: Date;
+
+  @ApiProperty()
   updatedAt: Date;
 
   static toResponse(kecamatan: any): KecamatanResponse {
