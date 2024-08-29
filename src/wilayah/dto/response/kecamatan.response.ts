@@ -11,7 +11,7 @@ export class KecamatanResponse {
   @ApiProperty()
   jumlahKelurahan: number;
 
-  @ApiProperty({ isArray: true, type: [KelurahanResponse] })
+  @ApiProperty({ isArray: true, type: () => KelurahanResponse })
   kelurahan: KelurahanResponse[];
 
   @ApiProperty()

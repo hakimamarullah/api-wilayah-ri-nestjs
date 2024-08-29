@@ -5,7 +5,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ProvinsiDto } from './dto/provinsi.dto';
-import { Kabupaten } from '@prisma/client';
 import { PrismaService } from '../prismadb/prisma.service';
 import { BaseResponse } from '../dto/baseResponse.dto';
 import { ProvinsiResponse } from './dto/response/provinsi.response';
@@ -109,7 +108,7 @@ export class WilayahService {
     }
 
     const provinsiResponse: ProvinsiResponse = new ProvinsiResponse();
-    const kabupaten: Kabupaten[] = provinsi.Kabupaten ?? [];
+    const kabupaten = provinsi.Kabupaten ?? [];
 
     provinsiResponse.id = provinsi.id;
     provinsiResponse.name = provinsi.name;
@@ -158,7 +157,7 @@ export class WilayahService {
     const dbResult = await this.prismaService.kabupaten.createManyAndReturn({
       data: kabupatenDtos,
     });
-    response.responseData = dbResult?.map((item) =>
+    response.responseData = dbResult?.map((item: any) =>
       KabupatenDto.build(item),
     ) as KabupatenDto[];
     void this.cachingService.resetKabupaten();
@@ -217,7 +216,7 @@ export class WilayahService {
         data: kecamatanDtos,
       },
     );
-    response.responseData = insertedData?.map((item) =>
+    response.responseData = insertedData?.map((item: any) =>
       KecamatanResponse.toResponse(item),
     );
     void this.cachingService.resetKecamatan();
@@ -273,7 +272,7 @@ export class WilayahService {
         data: kelurahanDtos,
       },
     );
-    response.responseData = insertedData?.map((item) =>
+    response.responseData = insertedData?.map((item: any) =>
       KelurahanResponse.toKelurahanResponse(item),
     );
     void this.cachingService.resetKelurahan();

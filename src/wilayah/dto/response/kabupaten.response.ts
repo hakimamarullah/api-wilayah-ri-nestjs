@@ -1,7 +1,6 @@
 import { KecamatanResponse } from './kecamatan.response';
-import { ApiExtraModels, ApiProperty } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
-@ApiExtraModels(() => KecamatanResponse)
 export class KabupatenResponse {
   @ApiProperty()
   id: number;

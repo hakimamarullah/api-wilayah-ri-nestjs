@@ -17,12 +17,22 @@ import { Response } from 'express';
 import { KabupatenDto } from './dto/kabupaten.dto';
 import { KelurahanDto } from './dto/kelurahan.dto';
 import { KecamatanDto } from './dto/kecamatan.dto';
-import { ApiExtraModels, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiExtraModels,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { ProvinsiResponse } from './dto/response/provinsi.response';
 import { KabupatenResponse } from './dto/response/kabupaten.response';
 import { KecamatanResponse } from './dto/response/kecamatan.response';
 import { KelurahanResponse } from './dto/response/kelurahan.response';
-import { ApiBaseResponse } from '../common/swagger/decorators/apiBaseResponse.decorator';
+import {
+  ApiBaseResponse,
+  ApiNotFoundBaseResponse,
+  ApiParamId,
+} from '../common/swagger/decorators/customSwagger.decorator';
 
 @ApiTags('WilayahController')
 @ApiExtraModels(() => BaseResponse)
@@ -31,8 +41,9 @@ export class WilayahController {
   constructor(private wilayahService: WilayahService) {}
 
   @Post('provinsi')
-  @ApiOperation({ description: 'Create provinsi in batch' })
-  @ApiBaseResponse(ProvinsiResponse, true)
+  @ApiOperation({ summary: 'Create provinsi in batch' })
+  @ApiBaseResponse({ model: ProvinsiResponse, isArray: true, statusCode: 201 })
+  @ApiBody({ type: () => [ProvinsiDto], isArray: true })
   async createProvinsi(
     @Body(new ParseArrayPipe({ items: ProvinsiDto }))
     provinsiDto: ProvinsiDto[],
@@ -44,6 +55,8 @@ export class WilayahController {
   }
 
   @Get('provinsi')
+  @ApiOperation({ summary: 'Get All Provinsi' })
+  @ApiBaseResponse({ model: ProvinsiResponse, isArray: true })
   async getAllProvinsi(@Res({ passthrough: true }) res: Response) {
     const response: BaseResponse<ProvinsiResponse[]> =
       await this.wilayahService.getAllProvinsi();
@@ -51,16 +64,17 @@ export class WilayahController {
   }
 
   @Get('provinsi/:id')
-  async getDetailsProvinsiById(
-    @Param('id', ParseIntPipe) id: number,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    const response: BaseResponse<ProvinsiResponse> =
-      await this.wilayahService.getProvinsiDetailsById(id);
-    res.status(response.responseCode).json(response);
+  @ApiOperation({ summary: 'Get Details Provinsi By ID' })
+  @ApiBaseResponse({ model: ProvinsiResponse })
+  @ApiParamId()
+  async getDetailsProvinsiById(@Param('id', ParseIntPipe) id: number) {
+    return await this.wilayahService.getProvinsiDetailsById(id);
   }
 
   @Delete('provinsi/:id')
+  @ApiOperation({ summary: 'Delete Provinsi By ID' })
+  @ApiBaseResponse({ model: Number })
+  @ApiParamId()
   async deleteProvinsiById(
     @Param('id', ParseIntPipe) id: number,
     @Res({ passthrough: true }) res: Response,
@@ -71,6 +85,9 @@ export class WilayahController {
   }
 
   @Delete('delete-batch/provinsi')
+  @ApiOperation({ summary: 'Batch delete provinsi by ID' })
+  @ApiBaseResponse({ model: Number })
+  @ApiQuery({ name: 'ids', type: String, example: '1,2,3' })
   async deleteBatchProvinsi(
     @Query('ids', new ParseArrayPipe({ items: Number, separator: ',' }))
     provinsiIds: number[],
@@ -82,6 +99,9 @@ export class WilayahController {
   }
 
   @Post('kabupaten')
+  @ApiOperation({ summary: 'Batch create kabupaten' })
+  @ApiBaseResponse({ model: KabupatenDto, isArray: true, statusCode: 201 })
+  @ApiBody({ type: () => [KabupatenDto] })
   async createBatchKabupaten(
     @Body(new ParseArrayPipe({ items: KabupatenDto }))
     kabupatenDtos: KabupatenDto[],
@@ -93,6 +113,9 @@ export class WilayahController {
   }
 
   @Get('kabupaten/:id')
+  @ApiOperation({ summary: 'Get Details Kabupaten By ID' })
+  @ApiBaseResponse({ model: KabupatenResponse })
+  @ApiParamId()
   async getKabupatenDetailsById(
     @Param('id', ParseIntPipe) id: number,
     @Res({ passthrough: true }) res: Response,
@@ -103,6 +126,9 @@ export class WilayahController {
   }
 
   @Delete('kabupaten/:id')
+  @ApiOperation({ summary: 'Delete Kabupaten By ID' })
+  @ApiBaseResponse({ model: Number })
+  @ApiParamId()
   async deleteKabupatenById(
     @Param('id', ParseIntPipe) id: number,
     @Res({ passthrough: true }) res: Response,
@@ -113,6 +139,9 @@ export class WilayahController {
   }
 
   @Post('kecamatan')
+  @ApiOperation({ summary: 'Batch create kecamatan' })
+  @ApiBaseResponse({ model: KecamatanDto, isArray: true, statusCode: 201 })
+  @ApiBody({ type: () => [KecamatanDto] })
   async createBatchKecamatan(
     @Body(new ParseArrayPipe({ items: KecamatanDto }))
     kecamatanDtos: KecamatanDto[],
@@ -124,6 +153,10 @@ export class WilayahController {
   }
 
   @Get('kecamatan/:id')
+  @ApiOperation({ summary: 'Get Details Kecamatan By ID' })
+  @ApiBaseResponse({ model: KecamatanResponse })
+  @ApiNotFoundBaseResponse()
+  @ApiParamId()
   async getKecamatanDetailsById(
     @Param('id', ParseIntPipe) id: number,
     @Res({ passthrough: true }) res: Response,
@@ -134,6 +167,9 @@ export class WilayahController {
   }
 
   @Delete('kecamatan/:id')
+  @ApiOperation({ summary: 'Delete Kecamatan By ID' })
+  @ApiBaseResponse({ model: KecamatanResponse })
+  @ApiParamId()
   async deleteKecamatanById(
     @Param('id', ParseIntPipe) id: number,
     @Res({ passthrough: true }) res: Response,
@@ -144,6 +180,9 @@ export class WilayahController {
   }
 
   @Post('kelurahan')
+  @ApiOperation({ summary: 'Create Batch Kelurahan' })
+  @ApiBaseResponse({ model: KelurahanResponse, isArray: true, statusCode: 201 })
+  @ApiBody({ type: () => [KelurahanDto] })
   async createBatchKelurahan(
     @Body(new ParseArrayPipe({ items: KelurahanDto }))
     kelurahanDto: KelurahanDto[],
@@ -155,6 +194,9 @@ export class WilayahController {
   }
 
   @Get('kelurahan/:id')
+  @ApiOperation({ summary: 'Get Details Kelurahan By ID' })
+  @ApiBaseResponse({ model: KelurahanResponse })
+  @ApiParamId()
   async getKelurahanDetailsById(
     @Param('id', ParseIntPipe) id: number,
     @Res({ passthrough: true }) res: Response,
@@ -165,6 +207,9 @@ export class WilayahController {
   }
 
   @Delete('kelurahan/:id')
+  @ApiOperation({ summary: 'Delete Kelurahan By ID' })
+  @ApiBaseResponse({ model: KelurahanResponse })
+  @ApiParamId()
   async deleteKelurahanById(
     @Param('id', ParseIntPipe) id: number,
     @Res({ passthrough: true }) res: Response,
