@@ -64,11 +64,16 @@ export class WilayahController {
   }
 
   @Get('provinsi/:id')
-  @ApiOperation({ summary: 'Get Details Provinsi By ID' })
+  @ApiOperation({ summary: 'Get Provinsi By ID' })
   @ApiBaseResponse({ model: ProvinsiResponse })
   @ApiParamId()
-  async getDetailsProvinsiById(@Param('id', ParseIntPipe) id: number) {
-    return await this.wilayahService.getProvinsiDetailsById(id);
+  async getDetailsProvinsiById(
+    @Param('id', ParseIntPipe) id: number,
+    @Res() res: Response,
+  ) {
+    const response: BaseResponse<ProvinsiResponse> =
+      await this.wilayahService.getProvinsiDetailsById(id);
+    res.status(response.responseCode).json(response);
   }
 
   @Delete('provinsi/:id')

@@ -4,15 +4,16 @@ import {
   PrismaClientValidationError,
 } from '@prisma/client/runtime/library';
 import { HttpStatus } from '@nestjs/common';
-import { getPrismaErrorMessage } from './prisma.util';
+import { getPrismaError, PrismaError } from './prisma.util';
 
 export const translatePrismaError = (err: Error, defaultMessage: string) => {
   const response: BaseResponse<any> = new BaseResponse();
   response.responseMessage = defaultMessage;
   switch (err.name) {
     case PrismaClientKnownRequestError.name:
-      response.responseCode = HttpStatus.BAD_REQUEST;
-      response.responseData = getPrismaErrorMessage(err);
+      const prismaErr: PrismaError = getPrismaError(err);
+      response.responseCode = prismaErr.httpStatus;
+      response.responseData = prismaErr.message;
       break;
     case PrismaClientValidationError.name:
       response.responseCode = HttpStatus.BAD_REQUEST;

@@ -22,7 +22,10 @@ export class CachingService {
         }
       }
     } catch (error) {
-      this.logger.error(`Error getting data from cache: ${error.message}`);
+      this.logger.error(`Error getting data from cache`);
+      if (error.name.startsWith('Prisma')) {
+        throw error;
+      }
     }
     return data;
   }
