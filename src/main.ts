@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { ErrorFilter } from './common/exceptions/error.filter';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { json, urlencoded } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -17,9 +18,12 @@ async function bootstrap() {
 
   const server = app.getHttpServer();
 
+  app.setGlobalPrefix('api');
   app.useGlobalInterceptors(new LoggingInterceptor());
   app.useGlobalFilters(new ErrorFilter());
   app.useGlobalPipes(new ValidationPipe());
+  app.use(json({ limit: '50mb' }));
+  app.use(urlencoded({ extended: true, limit: '50mb' }));
 
   // Http Timeout
   server.requestTimeout = configService.get<number>(

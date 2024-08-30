@@ -6,7 +6,7 @@ export class KecamatanResponse {
   id: number;
 
   @ApiProperty()
-  nama: string;
+  name: string;
 
   @ApiProperty()
   jumlahKelurahan: number;
@@ -23,7 +23,7 @@ export class KecamatanResponse {
   static toResponse(kecamatan: any): KecamatanResponse {
     const kecamatanResponse: KecamatanResponse = new KecamatanResponse();
     kecamatanResponse.id = kecamatan.id;
-    kecamatanResponse.nama = kecamatan.name;
+    kecamatanResponse.name = kecamatan.name;
     kecamatanResponse.jumlahKelurahan = kecamatan.Kelurahan?.length ?? 0;
     kecamatanResponse.kelurahan = kecamatan.Kelurahan?.map((item: any) =>
       KelurahanResponse.toKelurahanResponse(item),
