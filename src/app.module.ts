@@ -6,7 +6,7 @@ import { CachingModule } from './caching/caching.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, cache: true }),
     WilayahModule,
     PrismadbModule,
     CachingModule,
