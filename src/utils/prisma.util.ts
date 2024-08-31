@@ -1,10 +1,11 @@
-import { HttpStatus } from '@nestjs/common';
+import { HttpStatus, Logger } from '@nestjs/common';
 
 export declare interface PrismaError {
   message: string;
   httpStatus: number;
 }
 export const getPrismaError = (error: any): PrismaError => {
+  const logger: Logger = new Logger('PrismaErrorUtil');
   switch (error.code) {
     case 'P2002':
       return {
@@ -29,10 +30,13 @@ export const getPrismaError = (error: any): PrismaError => {
     case 'P2024':
       const message = error?.message?.split('\n');
       return {
-        message: message[message.length - 1]?.trim() ?? 'something went wrong',
+        message:
+          message[message.length - 1]?.trim() ??
+          `error ${error.code}: ${error.message}`,
         httpStatus: HttpStatus.INTERNAL_SERVER_ERROR,
       };
     default:
+      logger.error(error);
       return {
         message: 'something went wrong',
         httpStatus: HttpStatus.INTERNAL_SERVER_ERROR,
