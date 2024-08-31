@@ -3,3 +3,13 @@ Dockerfile
 node_modules
 npm-debug.log
 dist
+
+load_test_get_provinsi_by_id.js
+
+README.md
+seed_wilayah.py
+*.sh
+
+test
+*.out
+logs.out
