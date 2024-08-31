@@ -8,5 +8,6 @@ import { CachingModule } from '../caching/caching.module';
   providers: [WilayahService],
   imports: [PrismadbModule, CachingModule],
   controllers: [WilayahController],
+  exports: [WilayahService],
 })
 export class WilayahModule {}

@@ -44,11 +44,18 @@ export class WilayahService {
     return response;
   }
 
-  async getAllProvinsi(): Promise<BaseResponse<ProvinsiResponse[]>> {
+  async getAllProvinsi(
+    provinsiName?: string,
+  ): Promise<BaseResponse<ProvinsiResponse[]>> {
     const response: BaseResponse<ProvinsiResponse[]> =
       BaseResponse.getSuccessResponse<ProvinsiResponse[]>();
     const provinces = async () => {
       return this.prismaService.provinsi.findMany({
+        where: {
+          name: {
+            contains: provinsiName?.toUpperCase(),
+          },
+        },
         include: {
           _count: {
             select: {
@@ -59,7 +66,9 @@ export class WilayahService {
       });
     };
     const data = await this.cachingService.getDataOrElseReturn(
-      CacheConstant.CacheKey.PROVINSI_ALL,
+      provinsiName
+        ? `${CacheConstant.CacheKey.PROVINSI}-${provinsiName}`
+        : CacheConstant.CacheKey.PROVINSI_ALL,
       provinces,
     );
     response.responseData = data?.map((item: any) => {

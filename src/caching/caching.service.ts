@@ -3,6 +3,9 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { CacheConstant } from './cache.constant';
 
+export declare interface CacheOptions {
+  persist?: boolean;
+}
 @Injectable()
 export class CachingService {
   private readonly logger: Logger = new Logger(CachingService.name);
@@ -11,13 +14,15 @@ export class CachingService {
   async getDataOrElseReturn(
     key: string,
     defaultGetter: () => any,
+    options?: CacheOptions,
   ): Promise<any> {
     let data;
+    const { persist = true } = options ?? {};
     try {
       data = (await this.cacheManager.get(key)) as any;
       if (!data && defaultGetter) {
         data = await defaultGetter();
-        if (data) {
+        if (data && persist) {
           await this.cacheManager.set(key, data);
         }
       }

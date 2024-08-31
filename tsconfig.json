@@ -17,7 +17,7 @@
     "strictBindCallApply": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
-    "types": ["node"]
+    "types": ["node", "jest"]
   },
   "exclude": [
     "node_modules"
@@ -26,5 +26,6 @@
     "src/**/*.ts",
     "test/**/*.ts",
     "node_modules/@types/node/buffer.d.ts",
+    "node_modules/@types/jest/index.d.ts"
   ]
 }

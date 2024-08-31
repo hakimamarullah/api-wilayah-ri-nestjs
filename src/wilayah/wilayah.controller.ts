@@ -53,11 +53,12 @@ export class WilayahController {
   }
 
   @Get('provinsi')
-  @ApiOperation({ summary: 'Get All Provinsi' })
+  @ApiOperation({ summary: 'Get All Provinsi (Get by name optional)' })
   @HttpCode(HttpStatus.OK)
   @ApiBaseResponse({ model: ProvinsiResponse, isArray: true })
-  async getAllProvinsi() {
-    return await this.wilayahService.getAllProvinsi();
+  @ApiQuery({ name: 'name', required: false, type: String, example: 'Aceh' })
+  async getAllProvinsi(@Query('name') name: string) {
+    return await this.wilayahService.getAllProvinsi(name);
   }
 
   @Get('provinsi/:id')
