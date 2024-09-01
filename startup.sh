@@ -64,7 +64,7 @@ npx prisma migrate deploy
 
 # Start the application service
 echo "Starting application..."
-docker-compose up -d app
+docker-compose up --build -d app
 
 # Stream logs to file and ensure any failure is captured
 echo "Streaming logs to $LOG_FILE..."
