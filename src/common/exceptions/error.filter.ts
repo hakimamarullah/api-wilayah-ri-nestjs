@@ -15,6 +15,7 @@ import {
   PrismaClientValidationError,
 } from '@prisma/client/runtime/library';
 import { translatePrismaError } from '../../utils/common.util';
+import { ThrottlerException } from '@nestjs/throttler';
 
 @Catch(Error)
 export class ErrorFilter implements ExceptionFilter<Error> {
@@ -44,6 +45,8 @@ export class ErrorFilter implements ExceptionFilter<Error> {
         return HttpStatus.BAD_REQUEST;
       case NotFoundException.name:
         return HttpStatus.NOT_FOUND;
+      case ThrottlerException.name:
+        return HttpStatus.TOO_MANY_REQUESTS;
       case HttpException.name:
         return (e as HttpException).getStatus();
       default:

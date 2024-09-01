@@ -4,6 +4,7 @@ enum CacheKey {
   KECAMATAN = 'kecamatan',
   KELURAHAN = 'kelurahan',
   PROVINSI_ALL = 'provinsi-all',
+  API_KEY = 'api-key',
 }
 
 export const CacheConstant = {

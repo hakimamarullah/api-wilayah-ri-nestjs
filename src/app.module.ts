@@ -3,6 +3,7 @@ import { WilayahModule } from './wilayah/wilayah.module';
 import { ConfigModule } from '@nestjs/config';
 import { PrismadbModule } from './prismadb/prismadb.module';
 import { CachingModule } from './caching/caching.module';
+import { RateLimitingModule } from './rate-limiting/rate-limiting.module';
 
 @Module({
   imports: [
@@ -10,6 +11,7 @@ import { CachingModule } from './caching/caching.module';
     WilayahModule,
     PrismadbModule,
     CachingModule,
+    RateLimitingModule,
   ],
 })
 export class AppModule {}

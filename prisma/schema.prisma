@@ -61,3 +61,27 @@ model Kelurahan {
   @@unique([name, kecamatanId])
   @@map("kelurahan")
 }
+
+model ApiKey {
+  id        Int        @id @default(autoincrement())
+  apiKey    String     @unique @map("api_key") @db.VarChar(500)
+  tier      ApiKeyTier @relation(fields: [tierId], references: [id])
+  tierId    Int        @map("tier_id")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  @@index([apiKey])
+  @@map("api_key")
+}
+
+model ApiKeyTier {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  limit     Int      @default(0)
+  ttl       Int      @default(0)
+  apiKeys   ApiKey[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("api_key_tier")
+}
