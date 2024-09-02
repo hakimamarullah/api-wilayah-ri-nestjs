@@ -12,8 +12,7 @@ import {
 } from '@nestjs/throttler';
 import { Request } from 'express';
 import { PrismaService } from '../prismadb/prisma.service';
-import { CachingService } from '../caching/caching.service';
-import { CacheConstant } from '../caching/cache.constant';
+import { ApiKeyUtilityService } from '../api-key-utility/api-key-utility.service';
 
 @Injectable()
 export class ApiThrottlerGuardService extends ThrottlerGuard {
@@ -21,15 +20,20 @@ export class ApiThrottlerGuardService extends ThrottlerGuard {
   @Inject(PrismaService)
   private prismaService: PrismaService;
 
-  @Inject(CachingService)
-  private cachingService: CachingService;
+  @Inject(ApiKeyUtilityService)
+  private apiKeyUtility: ApiKeyUtilityService;
 
   async handleRequest(requestProps: ThrottlerRequest): Promise<boolean> {
     let hitCount;
     try {
       const { context, limit, ttl, throttler } = requestProps;
       const request = context.switchToHttp().getRequest<Request>();
-      const apiKey = await this.validateApiKey(request.get('x-api-key'));
+      if (this.shouldIgnore(request.url)) {
+        return true;
+      }
+      const apiKey = await this.apiKeyUtility.validateApiKey(
+        request.get('x-api-key'),
+      );
 
       if (throttler.name && apiKey?.tier?.name === throttler.name) {
         const key = this.generateKey(context, <string>apiKey, throttler.name);
@@ -55,26 +59,12 @@ export class ApiThrottlerGuardService extends ThrottlerGuard {
     return true;
   }
 
-  protected async validateApiKey(apiKey?: string) {
-    if (!apiKey) {
-      throw new Error('Missing API Key');
-    }
-    const getApiKeyDb = async () => {
-      return this.prismaService.apiKey.findFirstOrThrow({
-        where: {
-          apiKey: {
-            equals: apiKey,
-          },
-        },
-        include: {
-          tier: true,
-        },
-      });
-    };
+  shouldIgnore(url: string) {
+    const ignoredPathPatterns: RegExp[] = this.mapToRegex(['^/api/api-keys/*']);
+    return ignoredPathPatterns.some((pattern) => pattern.test(url));
+  }
 
-    return await this.cachingService.getDataOrThrow(
-      `${CacheConstant.CacheKey.API_KEY}-${apiKey}`,
-      getApiKeyDb,
-    );
+  private mapToRegex(paths: string[]): RegExp[] {
+    return paths.map((path) => new RegExp(path));
   }
 }

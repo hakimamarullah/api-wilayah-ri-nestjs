@@ -1,10 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prismadb/prisma.service';
-import { ThrottlerModuleOptions } from '@nestjs/throttler';
+import {
+  ThrottlerModuleOptions,
+  ThrottlerOptionsFactory,
+} from '@nestjs/throttler';
 import * as process from 'process';
 
 @Injectable()
-export class RateLimitingService {
+export class RateLimitingService implements ThrottlerOptionsFactory {
   private readonly logger: Logger = new Logger(RateLimitingService.name);
   constructor(readonly prismaService: PrismaService) {}
 
@@ -24,5 +27,14 @@ export class RateLimitingService {
     }
 
     return rateLimitingConfig;
+  }
+
+  /**
+   * Creates the throttler module options
+   */
+  createThrottlerOptions():
+    | Promise<ThrottlerModuleOptions>
+    | ThrottlerModuleOptions {
+    return this.loadRateLimiting();
   }
 }

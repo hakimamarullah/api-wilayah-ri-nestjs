@@ -5,9 +5,8 @@ import { PrismadbModule } from '../prismadb/prismadb.module';
 import { CachingModule } from '../caching/caching.module';
 import { APP_GUARD } from '@nestjs/core';
 import { ApiThrottlerGuardService } from '../api-throttler-guard/api-throttler-guard.service';
-import { ThrottlerModule } from '@nestjs/throttler';
 import { RateLimitingService } from '../rate-limiting/rate-limiting.service';
-import { RateLimitingModule } from '../rate-limiting/rate-limiting.module';
+import { ApiKeyUtilityModule } from '../api-key-utility/api-key-utility.module';
 
 @Module({
   providers: [
@@ -18,16 +17,7 @@ import { RateLimitingModule } from '../rate-limiting/rate-limiting.module';
       useClass: ApiThrottlerGuardService,
     },
   ],
-  imports: [
-    PrismadbModule,
-    CachingModule,
-    ThrottlerModule.forRootAsync({
-      imports: [RateLimitingModule],
-      useFactory: (rateLimitingService: RateLimitingService) =>
-        rateLimitingService.loadRateLimiting(),
-      inject: [RateLimitingService],
-    }),
-  ],
+  imports: [PrismadbModule, CachingModule, ApiKeyUtilityModule],
   controllers: [WilayahController],
   exports: [WilayahService],
 })

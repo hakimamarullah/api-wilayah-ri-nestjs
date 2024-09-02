@@ -20,6 +20,7 @@ import { KecamatanDto } from './dto/kecamatan.dto';
 import {
   ApiBody,
   ApiExtraModels,
+  ApiHeader,
   ApiOperation,
   ApiQuery,
   ApiTags,
@@ -36,6 +37,7 @@ import {
 
 @ApiTags('WilayahController')
 @ApiExtraModels(() => BaseResponse)
+@ApiHeader({ name: 'x-api-key', required: false })
 @Controller('wilayah')
 export class WilayahController {
   constructor(private wilayahService: WilayahService) {}
