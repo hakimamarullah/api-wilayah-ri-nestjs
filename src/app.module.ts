@@ -4,7 +4,6 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismadbModule } from './prismadb/prismadb.module';
 import { CachingModule } from './caching/caching.module';
 import { RateLimitingModule } from './rate-limiting/rate-limiting.module';
-import { ApiKeyUtilityModule } from './api-key-utility/api-key-utility.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { RateLimitingService } from './rate-limiting/rate-limiting.service';
 import { PrismaService } from './prismadb/prisma.service';
@@ -21,7 +20,6 @@ import { PrismaService } from './prismadb/prisma.service';
     PrismadbModule,
     CachingModule,
     RateLimitingModule,
-    ApiKeyUtilityModule,
   ],
 })
 export class AppModule {}

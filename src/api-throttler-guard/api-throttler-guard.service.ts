@@ -11,17 +11,15 @@ import {
   ThrottlerRequest,
 } from '@nestjs/throttler';
 import { Request } from 'express';
-import { PrismaService } from '../prismadb/prisma.service';
-import { ApiKeyUtilityService } from '../api-key-utility/api-key-utility.service';
+import { HttpClientService } from '../http-client/http-client.service';
+import { BaseResponse } from '../dto/baseResponse.dto';
 
 @Injectable()
 export class ApiThrottlerGuardService extends ThrottlerGuard {
   private readonly logger: Logger = new Logger(ApiThrottlerGuardService.name);
-  @Inject(PrismaService)
-  private prismaService: PrismaService;
 
-  @Inject(ApiKeyUtilityService)
-  private apiKeyUtility: ApiKeyUtilityService;
+  @Inject(HttpClientService)
+  private httpClient: HttpClientService;
 
   async handleRequest(requestProps: ThrottlerRequest): Promise<boolean> {
     let hitCount;
@@ -31,11 +29,12 @@ export class ApiThrottlerGuardService extends ThrottlerGuard {
       if (this.shouldIgnore(request.url)) {
         return true;
       }
-      const apiKey = await this.apiKeyUtility.validateApiKey(
-        request.get('x-api-key'),
+      const apiKey = request.get('x-api-key');
+      const { responseData } = await this.httpClient.get<BaseResponse<any>>(
+        `/api-key-manager/validate${apiKey}`,
       );
 
-      if (throttler.name && apiKey?.tier?.name === throttler.name) {
+      if (throttler.name && responseData?.tier?.name === throttler.name) {
         const key = this.generateKey(context, <string>apiKey, throttler.name);
         const { totalHits } = await this.storageService.increment(
           key,

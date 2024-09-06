@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ApiKeyUtilityService } from './api-key-utility.service';
+import { HttpClientService } from './http-client.service';
 
-describe('ApiKeyUtilityService', () => {
-  let service: ApiKeyUtilityService;
+describe('HttpClientService', () => {
+  let service: HttpClientService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [ApiKeyUtilityService],
+      providers: [HttpClientService],
     }).compile();
 
-    service = module.get<ApiKeyUtilityService>(ApiKeyUtilityService);
+    service = module.get<HttpClientService>(HttpClientService);
   });
 
   it('should be defined', () => {

@@ -6,7 +6,6 @@ import { CachingModule } from '../caching/caching.module';
 import { APP_GUARD } from '@nestjs/core';
 import { ApiThrottlerGuardService } from '../api-throttler-guard/api-throttler-guard.service';
 import { RateLimitingService } from '../rate-limiting/rate-limiting.service';
-import { ApiKeyUtilityModule } from '../api-key-utility/api-key-utility.module';
 
 @Module({
   providers: [
@@ -17,7 +16,7 @@ import { ApiKeyUtilityModule } from '../api-key-utility/api-key-utility.module';
       useClass: ApiThrottlerGuardService,
     },
   ],
-  imports: [PrismadbModule, CachingModule, ApiKeyUtilityModule],
+  imports: [PrismadbModule, CachingModule],
   controllers: [WilayahController],
   exports: [WilayahService],
 })

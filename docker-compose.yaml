@@ -1,25 +1,46 @@
 services:
-    app:
-        build: .
-        ports:
-            - "3000:8080"
-        container_name: api-wilayah-ri
-        restart: on-failure
-        env_file:
-            -   .env.docker
-        depends_on:
-          - db
-    db:
+    postgresql:
         image: postgres:16
-        container_name: api-wilayah-ri-db
         restart: on-failure
         ports:
             - "5440:5432"
+        networks:
+            - api-micro
         environment:
             - POSTGRES_USER=micro
             - POSTGRES_PASSWORD=micro
             - POSTGRES_DB=micro
         volumes:
             - pgdata:/var/lib/postgresql/data
+
+    auth-service:
+        image: hakimamarullah/auth-service-nestjs:v1.0.0
+        deploy:
+            mode: replicated
+            replicas: 2
+            restart_policy:
+                condition: on-failure
+        env_file: .env.auth.docker
+        networks:
+            - api-micro
+        depends_on:
+            - postgresql
+    api-key-management:
+        image: hakimamarullah/api-key-management-service-nestjs:v1.0.0
+        deploy:
+            mode: replicated
+            replicas: 2
+            restart_policy:
+                condition: on-failure
+        env_file: .env.api-key-management.docker
+        networks:
+            - api-micro
+        depends_on:
+            - auth-service
+            - postgresql
+
 volumes:
     pgdata: {}
+
+networks:
+    api-micro:

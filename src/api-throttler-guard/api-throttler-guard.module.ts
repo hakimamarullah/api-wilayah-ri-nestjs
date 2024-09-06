@@ -1,12 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ApiThrottlerGuardService } from './api-throttler-guard.service';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { ApiKeyUtilityModule } from '../api-key-utility/api-key-utility.module';
-import { ApiKeyUtilityService } from '../api-key-utility/api-key-utility.service';
+import { HttpClientService } from '../http-client/http-client.service';
 
 @Module({
-  providers: [ApiThrottlerGuardService, ApiKeyUtilityService],
+  providers: [ApiThrottlerGuardService, HttpClientService],
   exports: [ApiThrottlerGuardService],
-  imports: [ThrottlerModule.forRoot(), ApiKeyUtilityModule],
+  imports: [ThrottlerModule.forRoot()],
 })
 export class ApiThrottlerGuardModule {}
