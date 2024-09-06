@@ -6,18 +6,22 @@ import {
 import * as process from 'process';
 import { HttpClientService } from '../http-client/http-client.service';
 import { BaseResponse } from '../dto/baseResponse.dto';
+import { AppPropertiesService } from '../app-properties/app-properties.service';
 
 @Injectable()
 export class RateLimitingService implements ThrottlerOptionsFactory {
   private readonly logger: Logger = new Logger(RateLimitingService.name);
-  constructor(readonly httpClientService: HttpClientService) {}
+  constructor(
+    private httpClientService: HttpClientService,
+    private appProperties: AppPropertiesService,
+  ) {}
 
   async loadRateLimiting() {
     const { responseData } = await this.httpClientService.get<
       BaseResponse<any>
-    >('/api-key-manager/tiers');
+    >(`${this.appProperties.getApiKeyServiceBaseUrl()}/api-key-manager/tiers`);
 
-    if (!responseData || !responseData.length) {
+    if (!responseData?.length) {
       this.logger.fatal(
         'Rate limiting not configured. Should at least provide 1 rate limiting configuration',
       );
