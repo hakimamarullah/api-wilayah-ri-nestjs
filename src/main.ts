@@ -9,9 +9,7 @@ import { json, urlencoded } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const configService: ConfigService = app.get<ConfigService>(
-    ConfigService,
-  ) as ConfigService;
+  const configService: ConfigService = app.get<ConfigService>(ConfigService);
   const logger: Logger = new Logger(
     configService.get('APP_NAME', 'API-Wilayah-RI'),
   );
