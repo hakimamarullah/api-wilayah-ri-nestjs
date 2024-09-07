@@ -18,7 +18,7 @@ async function bootstrap() {
 
   const server = app.getHttpServer();
 
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix(configService.get<string>('PREFIX_PROXY', ''));
   app.useGlobalInterceptors(new LoggingInterceptor());
   app.useGlobalFilters(new ErrorFilter());
   app.useGlobalPipes(new ValidationPipe());
@@ -46,6 +46,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('/swagger', app, document, {
     jsonDocumentUrl: 'swagger/json',
+    useGlobalPrefix: true,
   });
   app.listen(port).then(() => logger.log(`Server started on port ${port}`));
 }
