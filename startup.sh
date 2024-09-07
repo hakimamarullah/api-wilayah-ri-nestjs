@@ -39,9 +39,7 @@ check_db() {
 
 cleanup
 
-# Start the database service
-echo "Starting database..."
-docker-compose up -d postgresql
+
 
 # Set environment variables
 export DATABASE_URL="postgresql://micro:micro@localhost:5440/micro?schema=micro"

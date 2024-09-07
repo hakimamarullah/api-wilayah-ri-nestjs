@@ -1,46 +1,7 @@
 services:
-    postgresql:
-        image: postgres:16
-        restart: on-failure
+    app:
+        build: .
         ports:
-            - "5440:5432"
-        networks:
-            - api-micro
-        environment:
-            - POSTGRES_USER=micro
-            - POSTGRES_PASSWORD=micro
-            - POSTGRES_DB=micro
+            - "8080:8080"
         volumes:
-            - pgdata:/var/lib/postgresql/data
-
-    auth-service:
-        image: hakimamarullah/auth-service-nestjs:v1.0.0
-        deploy:
-            mode: replicated
-            replicas: 2
-            restart_policy:
-                condition: on-failure
-        env_file: .env.auth.docker
-        networks:
-            - api-micro
-        depends_on:
-            - postgresql
-    api-key-management:
-        image: hakimamarullah/api-key-management-service-nestjs:v1.0.0
-        deploy:
-            mode: replicated
-            replicas: 2
-            restart_policy:
-                condition: on-failure
-        env_file: .env.api-key-management.docker
-        networks:
-            - api-micro
-        depends_on:
-            - auth-service
-            - postgresql
-
-volumes:
-    pgdata: {}
-
-networks:
-    api-micro:
+            - .:/app
