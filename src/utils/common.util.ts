@@ -3,7 +3,7 @@ import {
   PrismaClientKnownRequestError,
   PrismaClientValidationError,
 } from '@prisma/client/runtime/library';
-import { HttpStatus } from '@nestjs/common';
+import { HttpStatus, Logger } from '@nestjs/common';
 import { getPrismaError, PrismaError } from './prisma.util';
 import * as crypto from 'crypto';
 
@@ -81,4 +81,58 @@ export const addDays = (date: Date, days: number) => {
 
 export const next30Days = () => {
   return addDays(new Date(), 30);
+};
+
+/**
+ * Converts a wildcard pattern to a regular expression.
+ * @param pattern The wildcard pattern (e.g., '/api/somepath/*')
+ * @returns A regular expression that matches the pattern.
+ */
+export const convertPatternToRegExp = async (
+  pattern: string,
+): Promise<RegExp> => {
+  const escapedPattern = pattern
+    .replace(/([.*+?^${}()|[\]\\])/g, '\\$1') // Escape special characters
+    .replace(/:\w+/g, '\\w+') // Convert ':id' or ':parameter' to '\d+' for numeric values
+    .replace(/\\\*/g, '.*') // Replace '*' with '.*'
+    .replace(/\\\?/g, '.') // Optionally replace '?' with '.'
+    .replace(/\\\[/g, '[') // Unescape '[' for character classes
+    .replace(/\\]/g, ']') // Unescape ']' for character classes
+    .replace(/\\\(/g, '(') // Unescape '(' for capturing groups if needed
+    .replace(/\\\)/g, ')'); // Unescape ')' for capturing groups if needed
+
+  // Return a RegExp object with anchors to match the entire string
+  return new RegExp(`^${escapedPattern}$`);
+};
+
+export const convertTo = async <T>(
+  data: { [keyName: string]: string[] },
+  transformer: (value: any) => Promise<T>,
+): Promise<{ [keyName: string]: T[] }> => {
+  const logger = new Logger('CommonUtil.ConvertTo');
+  // Create a new object to store the results
+  const result: { [keyName: string]: T[] } = {};
+
+  // Iterate over each key in the input data
+  for (const keyName of Object.keys(data)) {
+    // Map each string pattern to its transformed value
+    const transformedArray = await Promise.all(
+      data[keyName].map(async (patternString) => {
+        try {
+          return await transformer(patternString);
+        } catch (e) {
+          logger.error(
+            `Error transforming pattern string: ${patternString}`,
+            e,
+          );
+          return null; // Exclude any failed transformations
+        }
+      }),
+    ).then((arr) => arr.filter((item) => item !== null)); // Filter out null values
+
+    // Add the transformed array to the result object
+    result[keyName] = transformedArray as T[];
+  }
+
+  return result;
 };

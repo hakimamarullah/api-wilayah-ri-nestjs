@@ -37,6 +37,9 @@ export class ErrorFilter implements ExceptionFilter<Error> {
   }
 
   getResponseCode(e: Error) {
+    if (e instanceof HttpException) {
+      return e.getStatus();
+    }
     switch ((e as any).name) {
       case BadRequestException.name:
         return HttpStatus.BAD_REQUEST;

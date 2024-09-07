@@ -5,6 +5,8 @@ enum CacheKey {
   KELURAHAN = 'kelurahan',
   PROVINSI_ALL = 'provinsi-all',
   API_KEY = 'api-key',
+  ROLES_PATHS = 'roles-paths',
+  ROLES = 'roles',
 }
 
 export const CacheConstant = {

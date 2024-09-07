@@ -22,4 +22,15 @@ export class AppPropertiesService {
   public getApiKeyServiceBearerToken(): string {
     return this.configService.get<string>('API_KEY_MANAGER_BEARER_TOKEN', '');
   }
+
+  public getAuthServiceBaseUrl() {
+    return this.configService.get('AUTH_SERVICE_URL', 'http://localhost:3001');
+  }
+  public getAuthServiceToken() {
+    return this.configService.get('AUTH_SERVICE_TOKEN', 'token');
+  }
+
+  public getAuthServiceHttpTimeout() {
+    return this.configService.get<number>('AUTH_SERVICE_HTTP_TIMEOUT', 10000);
+  }
 }

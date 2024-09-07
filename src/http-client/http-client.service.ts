@@ -13,4 +13,12 @@ export class HttpClientService {
     );
     return data as T;
   }
+
+  async getWithBearer<T>(url: string, token: string) {
+    return this.get<T>(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
 }

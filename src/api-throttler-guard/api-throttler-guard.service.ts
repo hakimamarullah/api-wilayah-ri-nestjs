@@ -13,6 +13,9 @@ import {
 import { Request } from 'express';
 import { HttpClientService } from '../http-client/http-client.service';
 import { BaseResponse } from '../dto/baseResponse.dto';
+import { AppPropertiesService } from '../app-properties/app-properties.service';
+import { IS_PUBLIC } from '../auth/decorator/public.decorator';
+import { NO_THROTTLE } from '../auth/decorator/noThrottler.decorator';
 
 @Injectable()
 export class ApiThrottlerGuardService extends ThrottlerGuard {
@@ -21,17 +24,29 @@ export class ApiThrottlerGuardService extends ThrottlerGuard {
   @Inject(HttpClientService)
   private httpClient: HttpClientService;
 
+  @Inject(AppPropertiesService)
+  private appProperties: AppPropertiesService;
+
   async handleRequest(requestProps: ThrottlerRequest): Promise<boolean> {
     let hitCount;
     try {
       const { context, limit, ttl, throttler } = requestProps;
       const request = context.switchToHttp().getRequest<Request>();
-      if (this.shouldIgnore(request.url)) {
+
+      const noThrottle = this.reflector.getAllAndOverride<boolean>(
+        NO_THROTTLE,
+        [context.getHandler(), context.getClass()],
+      );
+
+      if (this.shouldIgnore(request.url) || noThrottle) {
         return true;
       }
       const apiKey = request.get('x-api-key');
-      const { responseData } = await this.httpClient.get<BaseResponse<any>>(
-        `/api-key-manager/validate${apiKey}`,
+      const { responseData } = await this.httpClient.getWithBearer<
+        BaseResponse<any>
+      >(
+        `${this.appProperties.getApiKeyServiceBaseUrl()}/api-key-manager/validate/${apiKey}`,
+        this.appProperties.getAuthServiceToken(),
       );
 
       if (throttler.name && responseData?.tier?.name === throttler.name) {

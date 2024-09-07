@@ -18,6 +18,7 @@ import { KabupatenDto } from './dto/kabupaten.dto';
 import { KelurahanDto } from './dto/kelurahan.dto';
 import { KecamatanDto } from './dto/kecamatan.dto';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiExtraModels,
   ApiHeader,
@@ -34,6 +35,8 @@ import {
   ApiNotFoundBaseResponse,
   ApiParamId,
 } from '../common/swagger/decorators/customSwagger.decorator';
+import { Public } from '../auth/decorator/public.decorator';
+import { NoThrottle } from '../auth/decorator/noThrottler.decorator';
 
 @ApiTags('WilayahController')
 @ApiExtraModels(() => BaseResponse)
@@ -43,6 +46,8 @@ export class WilayahController {
   constructor(private wilayahService: WilayahService) {}
 
   @Post('provinsi')
+  @NoThrottle()
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create provinsi in batch' })
   @HttpCode(HttpStatus.CREATED)
   @ApiBaseResponse({ model: ProvinsiResponse, isArray: true, statusCode: 201 })
@@ -55,6 +60,7 @@ export class WilayahController {
   }
 
   @Get('provinsi')
+  @Public()
   @ApiOperation({ summary: 'Get All Provinsi (Get by name optional)' })
   @HttpCode(HttpStatus.OK)
   @ApiBaseResponse({ model: ProvinsiResponse, isArray: true })
@@ -64,6 +70,7 @@ export class WilayahController {
   }
 
   @Get('provinsi/:id')
+  @Public()
   @ApiOperation({ summary: 'Get Provinsi By ID' })
   @HttpCode(HttpStatus.OK)
   @ApiBaseResponse({ model: ProvinsiResponse })
@@ -73,6 +80,7 @@ export class WilayahController {
   }
 
   @Delete('provinsi/:id')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete Provinsi By ID' })
   @HttpCode(HttpStatus.OK)
   @ApiBaseResponse({ model: Number })
@@ -82,6 +90,7 @@ export class WilayahController {
   }
 
   @Delete('delete-batch/provinsi')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Batch delete provinsi by ID' })
   @HttpCode(HttpStatus.OK)
   @ApiBaseResponse({ model: Number })
@@ -94,6 +103,8 @@ export class WilayahController {
   }
 
   @Post('kabupaten')
+  @NoThrottle()
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Batch create kabupaten' })
   @ApiBaseResponse({ model: KabupatenDto, isArray: true, statusCode: 201 })
   @ApiBody({ type: () => [KabupatenDto] })
@@ -105,6 +116,7 @@ export class WilayahController {
   }
 
   @Get('kabupaten/:id')
+  @Public()
   @ApiOperation({ summary: 'Get Details Kabupaten By ID' })
   @HttpCode(HttpStatus.OK)
   @ApiNotFoundBaseResponse()
@@ -115,6 +127,8 @@ export class WilayahController {
   }
 
   @Delete('kabupaten/:id')
+  @NoThrottle()
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete Kabupaten By ID' })
   @HttpCode(HttpStatus.OK)
   @ApiBaseResponse({ model: Number })
@@ -124,6 +138,8 @@ export class WilayahController {
   }
 
   @Post('kecamatan')
+  @NoThrottle()
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Batch create kecamatan' })
   @HttpCode(HttpStatus.CREATED)
   @ApiBaseResponse({ model: KecamatanDto, isArray: true, statusCode: 201 })
@@ -136,6 +152,7 @@ export class WilayahController {
   }
 
   @Get('kecamatan/:id')
+  @Public()
   @ApiOperation({ summary: 'Get Details Kecamatan By ID' })
   @ApiBaseResponse({ model: KecamatanResponse })
   @ApiNotFoundBaseResponse()
@@ -145,6 +162,8 @@ export class WilayahController {
   }
 
   @Delete('kecamatan/:id')
+  @NoThrottle()
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete Kecamatan By ID' })
   @HttpCode(HttpStatus.OK)
   @ApiBaseResponse({ model: KecamatanResponse })
@@ -154,6 +173,8 @@ export class WilayahController {
   }
 
   @Post('kelurahan')
+  @NoThrottle()
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create Batch Kelurahan' })
   @HttpCode(HttpStatus.CREATED)
   @ApiBaseResponse({ model: KelurahanResponse, isArray: true, statusCode: 201 })
@@ -166,6 +187,7 @@ export class WilayahController {
   }
 
   @Get('kelurahan/:id')
+  @Public()
   @ApiOperation({ summary: 'Get Details Kelurahan By ID' })
   @HttpCode(HttpStatus.OK)
   @ApiNotFoundBaseResponse()
@@ -176,6 +198,8 @@ export class WilayahController {
   }
 
   @Delete('kelurahan/:id')
+  @NoThrottle()
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete Kelurahan By ID' })
   @HttpCode(HttpStatus.OK)
   @ApiBaseResponse({ model: KelurahanResponse })
