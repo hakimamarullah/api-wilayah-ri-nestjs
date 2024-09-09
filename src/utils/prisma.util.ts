@@ -14,7 +14,7 @@ export const getPrismaError = (error: any): PrismaError => {
       };
     case 'P2025':
       return {
-        message: `${error.meta.cause} Model: ${error.meta.modelName}`,
+        message: `Data Not Found`,
         httpStatus: HttpStatus.NOT_FOUND,
       };
     case 'P2003':
@@ -27,7 +27,7 @@ export const getPrismaError = (error: any): PrismaError => {
         message: 'Database connection timeout. Please try again.',
         httpStatus: HttpStatus.INTERNAL_SERVER_ERROR,
       };
-    case 'P2024':
+    case 'P2024': {
       const message = error?.message?.split('\n');
       return {
         message:
@@ -35,6 +35,7 @@ export const getPrismaError = (error: any): PrismaError => {
           `error ${error.code}: ${error.message}`,
         httpStatus: HttpStatus.INTERNAL_SERVER_ERROR,
       };
+    }
     default:
       logger.error(error);
       return {
