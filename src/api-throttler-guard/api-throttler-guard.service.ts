@@ -14,7 +14,6 @@ import { Request } from 'express';
 import { HttpClientService } from '../http-client/http-client.service';
 import { BaseResponse } from '../dto/baseResponse.dto';
 import { AppPropertiesService } from '../app-properties/app-properties.service';
-import { IS_PUBLIC } from '../auth/decorator/public.decorator';
 import { NO_THROTTLE } from '../auth/decorator/noThrottler.decorator';
 
 @Injectable()
