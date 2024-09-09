@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { CacheConstant } from './cache.constant';
@@ -42,7 +42,7 @@ export class CachingService {
   ): Promise<any> {
     const data = await this.getDataOrElseReturn(key, defaultGetter, options);
     if (!data) {
-      throw new Error(`${key} not found`);
+      throw new NotFoundException(`${key} not found`);
     }
     return data;
   }
