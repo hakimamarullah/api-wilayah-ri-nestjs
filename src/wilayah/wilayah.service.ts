@@ -65,7 +65,7 @@ export class WilayahService {
         },
       });
     };
-    const data = await this.cachingService.getDataOrElseReturn(
+    const data = await this.cachingService.getDataOrThrow(
       provinsiName
         ? `${CacheConstant.CacheKey.PROVINSI}-${provinsiName}`
         : CacheConstant.CacheKey.PROVINSI_ALL,
@@ -75,7 +75,7 @@ export class WilayahService {
       const provinceResponse = new ProvinsiResponse();
       provinceResponse.id = item.id;
       provinceResponse.name = item.name;
-      provinceResponse.jumlahKabupaten = (item as any)._count.Kabupaten;
+      provinceResponse.jumlahKabupaten = item._count.Kabupaten;
       provinceResponse.createdAt = item.createdAt;
       provinceResponse.updatedAt = item.updatedAt;
       return provinceResponse;
