@@ -4,6 +4,7 @@ import {
   Inject,
   Injectable,
   Logger,
+  OnModuleInit,
 } from '@nestjs/common';
 import {
   ThrottlerException,
@@ -11,20 +12,22 @@ import {
   ThrottlerRequest,
 } from '@nestjs/throttler';
 import { Request } from 'express';
-import { HttpClientService } from '../http-client/http-client.service';
-import { BaseResponse } from '../dto/baseResponse.dto';
 import { AppPropertiesService } from '../app-properties/app-properties.service';
-import { NO_THROTTLE } from '../auth/decorator/noThrottler.decorator';
+import { BaseResponse } from '@hakimamarullah/commonbundle-nestjs';
+import { NO_THROTTLE } from './decorators/noThrottler.decorator';
+import axios, { AxiosInstance } from 'axios';
 
 @Injectable()
-export class ApiThrottlerGuardService extends ThrottlerGuard {
+export class ApiThrottlerGuardService
+  extends ThrottlerGuard
+  implements OnModuleInit
+{
   private readonly logger: Logger = new Logger(ApiThrottlerGuardService.name);
-
-  @Inject(HttpClientService)
-  private httpClient: HttpClientService;
 
   @Inject(AppPropertiesService)
   private appProperties: AppPropertiesService;
+
+  private httpClient: AxiosInstance;
 
   async handleRequest(requestProps: ThrottlerRequest): Promise<boolean> {
     let hitCount;
@@ -41,12 +44,10 @@ export class ApiThrottlerGuardService extends ThrottlerGuard {
         return true;
       }
       const apiKey = request.get('x-api-key');
-      const { responseData } = await this.httpClient.getWithBearer<
-        BaseResponse<any>
-      >(
+      const { data } = await this.httpClient.get<BaseResponse<any>>(
         `${this.appProperties.getApiKeyServiceBaseUrl()}/api-key-manager/validate/${apiKey}`,
-        this.appProperties.getAuthServiceToken(),
       );
+      const { responseData } = data;
 
       if (throttler.name && responseData?.tier?.name === throttler.name) {
         const key = this.generateKey(context, <string>apiKey, throttler.name);
@@ -79,5 +80,16 @@ export class ApiThrottlerGuardService extends ThrottlerGuard {
 
   private mapToRegex(paths: string[]): RegExp[] {
     return paths.map((path) => new RegExp(path));
+  }
+
+  async onModuleInit(): Promise<void> {
+    this.httpClient = axios.create({
+      timeout: 10000,
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Authorization: `Bearer ${this.appProperties.getAuthServiceToken()}`,
+      },
+    });
   }
 }

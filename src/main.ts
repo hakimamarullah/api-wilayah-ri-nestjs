@@ -2,10 +2,12 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ErrorFilter } from './common/exceptions/error.filter';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { json, urlencoded } from 'express';
+import {
+  ErrorFilter,
+  LoggingInterceptor,
+} from '@hakimamarullah/commonbundle-nestjs';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

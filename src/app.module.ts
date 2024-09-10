@@ -1,40 +1,36 @@
 import { Module } from '@nestjs/common';
 import { WilayahModule } from './wilayah/wilayah.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismadbModule } from './prismadb/prismadb.module';
-import { CachingModule } from './caching/caching.module';
 import { RateLimitingModule } from './rate-limiting/rate-limiting.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { RateLimitingService } from './rate-limiting/rate-limiting.service';
 import { PrismaService } from './prismadb/prisma.service';
-import { HttpClientModule } from './http-client/http-client.module';
-import { HttpClientService } from './http-client/http-client.service';
+
 import { AppPropertiesService } from './app-properties/app-properties.service';
 import { AppPropertiesModule } from './app-properties/app-properties.module';
 import { APP_GUARD } from '@nestjs/core';
-import { AuthGuard } from './auth/auth.guard';
 import { JwtModule } from '@nestjs/jwt';
-import { AuthModule } from './auth/auth.module';
 import { HttpModule } from '@nestjs/axios';
-import { JwtConfigService } from './auth/jwt-config.service';
+import {
+  AuthGuard,
+  AuthModule,
+  CachingModule,
+  CachingService,
+  JwtConfigService,
+} from '@hakimamarullah/commonbundle-nestjs';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, cache: true }),
-    HttpModule.register({}),
     JwtModule.registerAsync({
-      imports: [HttpClientModule, AuthModule, HttpModule, AppPropertiesModule],
+      imports: [AuthModule, HttpModule, AppPropertiesModule],
       useClass: JwtConfigService,
-      inject: [JwtConfigService, HttpClientService, AppPropertiesService],
+      inject: [JwtConfigService, AppPropertiesService],
     }),
     ThrottlerModule.forRootAsync({
-      imports: [
-        RateLimitingModule,
-        PrismadbModule,
-        HttpClientModule,
-        AppPropertiesModule,
-      ],
-      inject: [PrismaService, HttpClientService, AppPropertiesService],
+      imports: [RateLimitingModule, PrismadbModule, AppPropertiesModule],
+      inject: [PrismaService, AppPropertiesService],
       useClass: RateLimitingService,
     }),
     WilayahModule,
@@ -43,8 +39,9 @@ import { JwtConfigService } from './auth/jwt-config.service';
     RateLimitingModule,
   ],
   providers: [
-    HttpClientService,
     AppPropertiesService,
+    CachingService,
+    ConfigService,
     {
       provide: APP_GUARD,
       useClass: AuthGuard,

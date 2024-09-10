@@ -4,23 +4,36 @@ import {
   ThrottlerOptionsFactory,
 } from '@nestjs/throttler';
 import * as process from 'process';
-import { HttpClientService } from '../http-client/http-client.service';
-import { BaseResponse } from '../dto/baseResponse.dto';
 import { AppPropertiesService } from '../app-properties/app-properties.service';
+import {
+  HttpClientBase,
+  HttpMethod,
+} from '@hakimamarullah/commonbundle-nestjs';
 
 @Injectable()
-export class RateLimitingService implements ThrottlerOptionsFactory {
-  private readonly logger: Logger = new Logger(RateLimitingService.name);
-  constructor(
-    private httpClientService: HttpClientService,
-    private appProperties: AppPropertiesService,
-  ) {}
+export class RateLimitingService
+  extends HttpClientBase
+  implements ThrottlerOptionsFactory
+{
+  constructor(private appProperties: AppPropertiesService) {
+    super();
+    this.logger = new Logger(RateLimitingService.name);
+    this.initConfig({
+      enableLogger: true,
+      options: {
+        baseURL: this.appProperties.getApiKeyServiceBaseUrl(),
+        headers: {
+          Authorization: `Bearer ${this.appProperties.getAuthServiceToken()}`,
+        },
+      },
+    });
+  }
 
   async loadRateLimiting() {
-    const { responseData } = await this.httpClientService.get<
-      BaseResponse<any>
-    >(`${this.appProperties.getApiKeyServiceBaseUrl()}/api-key-manager/tiers`);
-
+    const { responseData } = await this.handleRequest(
+      HttpMethod.GET,
+      `/api-key-manager/tiers`,
+    );
     if (!responseData?.length) {
       this.logger.fatal(
         'Rate limiting not configured. Should at least provide 1 rate limiting configuration',

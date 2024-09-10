@@ -13,7 +13,6 @@ import {
 } from '@nestjs/common';
 import { WilayahService } from './wilayah.service';
 import { ProvinsiDto } from './dto/provinsi.dto';
-import { BaseResponse } from '../dto/baseResponse.dto';
 import { KabupatenDto } from './dto/kabupaten.dto';
 import { KelurahanDto } from './dto/kelurahan.dto';
 import { KecamatanDto } from './dto/kecamatan.dto';
@@ -34,9 +33,10 @@ import {
   ApiBaseResponse,
   ApiNotFoundBaseResponse,
   ApiParamId,
-} from '../common/swagger/decorators/customSwagger.decorator';
-import { Public } from '../auth/decorator/public.decorator';
-import { NoThrottle } from '../auth/decorator/noThrottler.decorator';
+  BaseResponse,
+  Public,
+} from '@hakimamarullah/commonbundle-nestjs';
+import { NoThrottle } from '../api-throttler-guard/decorators/noThrottler.decorator';
 
 @ApiTags('WilayahController')
 @ApiExtraModels(() => BaseResponse)
@@ -127,7 +127,7 @@ export class WilayahController {
   }
 
   @Delete('kabupaten/:id')
-  @NoThrottle()
+  //@NoThrottle()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete Kabupaten By ID' })
   @HttpCode(HttpStatus.OK)

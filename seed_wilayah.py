@@ -1,6 +1,7 @@
 import logging
 
 import requests
+import time
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -8,10 +9,13 @@ logging.basicConfig(level=logging.INFO)
 
 # URLs for the source and destination APIs
 source_api_url = "https://api.wilayah.anmediacorp.com"
-destination_api_url = "http://localhost:3000/api/wilayah"
+destination_api_url = "http://localhost:9099/api-wilayah/wilayah"
+sleep_seconds=1
 
 # Fetch data from the source API
 logging.info('START GETTING PROVINSI [SOURCE]')
+bearer = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjUsInVzZXJuYW1lIjoiYWRtaW4iLCJpYXQiOjE3MjU5NTM4MTksImV4cCI6MTcyNjA0MDIxOX0.IkYPxnNxw5YP7EU8oF8_hcjRnJzYshhpt5NA9-lkzeY'
+headers = {"Authorization": f"Bearer {bearer}"}
 responseProvinsi = requests.get(source_api_url+"/provinces")
 responseProvinsi.raise_for_status()  # Ensure the request was successful
 provinsi_list = responseProvinsi.json()
@@ -40,7 +44,7 @@ for provinsi in provinsi_list:
 
 # Send the batch payload to the destination API
 logging.info('START SAVE PROVINSI [DESTINATION]')
-batch_response = requests.post(destination_api_url + "/provinsi", json=batch_payload)
+batch_response = requests.post(destination_api_url + "/provinsi", json=batch_payload, headers=headers)
 batch_response.raise_for_status()  # Ensure the request was successful
 new_provinsi_list = batch_response.json()["responseData"]
 
@@ -64,7 +68,7 @@ for id_old in id_map.values():
         batch_kabupaten.append(new_kab)
 
 logging.info('START POSTING KABUPATEN [DESTINATION]')
-new_kab_list = requests.post(destination_api_url + "/kabupaten", json=batch_kabupaten).json()["responseData"]
+new_kab_list = requests.post(destination_api_url + "/kabupaten", json=batch_kabupaten, headers=headers).json()["responseData"]
 kab_id_map = {}
 
 for res in new_kab_list:
@@ -85,8 +89,10 @@ for id_old in kab_old_id.values():
         }
         kec_old_id[kec["name"]] = kec["id"]
         batch_kec.append(new_kec)
-    new_kec_list.extend(requests.post(destination_api_url + "/kecamatan", json=batch_kec).json()["responseData"])
+    new_kec_list.extend(requests.post(destination_api_url + "/kecamatan", json=batch_kec, headers=headers).json()["responseData"])
     batch_kec = []
+    time.sleep(sleep_seconds)
+    
 
 logging.info('START POSTING KECAMATAN [DESTINATION]')
 kec_id_map = {}
@@ -112,8 +118,9 @@ for id_old in kec_id_map.keys():
         kel_old_id[kel["name"]] = kel["id"]
         batch_kel.append(new_kel)
     logging.info('START POSTING KELURAHAN [DESTINATION]')
-    requests.post(destination_api_url + "/kelurahan", json=batch_kel).json()
+    requests.post(destination_api_url + "/kelurahan", json=batch_kel, headers=headers).json()
     batch_kel = []
+    time.sleep(sleep_seconds)
 
 
 logging.info('ALL DATA POSTED')
