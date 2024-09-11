@@ -1,10 +1,10 @@
 import {
+  ExecutionContext,
   HttpException,
   HttpStatus,
   Inject,
   Injectable,
   Logger,
-  OnModuleInit,
 } from '@nestjs/common';
 import {
   ThrottlerException,
@@ -12,16 +12,14 @@ import {
   ThrottlerRequest,
 } from '@nestjs/throttler';
 import { Request } from 'express';
-import { AppPropertiesService } from '../app-properties/app-properties.service';
-import { BaseResponse } from '@hakimamarullah/commonbundle-nestjs';
 import { NO_THROTTLE } from './decorators/noThrottler.decorator';
+import { AppPropertiesService } from '../app-properties/app-properties.service';
+
 import axios, { AxiosInstance } from 'axios';
+import { BaseResponse } from '@hakimamarullah/commonbundle-nestjs';
 
 @Injectable()
-export class ApiThrottlerGuardService
-  extends ThrottlerGuard
-  implements OnModuleInit
-{
+export class ApiThrottlerGuardService extends ThrottlerGuard {
   private readonly logger: Logger = new Logger(ApiThrottlerGuardService.name);
 
   @Inject(AppPropertiesService)
@@ -34,22 +32,10 @@ export class ApiThrottlerGuardService
     try {
       const { context, limit, ttl, throttler } = requestProps;
       const request = context.switchToHttp().getRequest<Request>();
-
-      const noThrottle = this.reflector.getAllAndOverride<boolean>(
-        NO_THROTTLE,
-        [context.getHandler(), context.getClass()],
-      );
-
-      if (this.shouldIgnore(request.url) || noThrottle) {
-        return true;
-      }
       const apiKey = request.get('x-api-key');
-      const { data } = await this.httpClient.get<BaseResponse<any>>(
-        `${this.appProperties.getApiKeyServiceBaseUrl()}/api-key-manager/validate/${apiKey}`,
-      );
-      const { responseData } = data;
 
-      if (throttler.name && responseData?.tier?.name === throttler.name) {
+      const responseData = await this.validateApiKey(apiKey);
+      if (throttler.name && responseData?.tierName === throttler.name) {
         const key = this.generateKey(context, <string>apiKey, throttler.name);
         const { totalHits } = await this.storageService.increment(
           key,
@@ -82,7 +68,22 @@ export class ApiThrottlerGuardService
     return paths.map((path) => new RegExp(path));
   }
 
-  async onModuleInit(): Promise<void> {
+  private async validateApiKey(apiKey: string | undefined): Promise<any> {
+    if (!apiKey) {
+      throw new HttpException('missing api key', HttpStatus.FORBIDDEN);
+    }
+    const { data } = await this.httpClient.get<BaseResponse<any>>(
+      `${this.appProperties.getApiKeyServiceBaseUrl()}/api-key-manager/validate/${apiKey}`,
+    );
+    const { responseData, responseCode } = data;
+    if (responseCode !== 200) {
+      throw new HttpException('invalid api key', HttpStatus.FORBIDDEN);
+    }
+
+    return responseData;
+  }
+
+  onModuleInit(): Promise<void> {
     this.httpClient = axios.create({
       timeout: 10000,
       headers: {
@@ -90,6 +91,20 @@ export class ApiThrottlerGuardService
         Accept: 'application/json',
         Authorization: `Bearer ${this.appProperties.getAuthServiceToken()}`,
       },
+      validateStatus: () => true,
     });
+
+    return super.onModuleInit();
+  }
+
+  protected shouldSkip(_context: ExecutionContext): Promise<boolean> {
+    const request = _context.switchToHttp().getRequest<Request>();
+
+    const noThrottle = this.reflector.getAllAndOverride<boolean>(NO_THROTTLE, [
+      _context.getHandler(),
+      _context.getClass(),
+    ]);
+
+    return Promise.resolve(this.shouldIgnore(request.url) || noThrottle);
   }
 }

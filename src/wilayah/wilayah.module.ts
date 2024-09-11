@@ -3,13 +3,13 @@ import { WilayahService } from './wilayah.service';
 import { WilayahController } from './wilayah.controller';
 import { PrismadbModule } from '../prismadb/prismadb.module';
 import { APP_GUARD } from '@nestjs/core';
-import { ApiThrottlerGuardService } from '../api-throttler-guard/api-throttler-guard.service';
 import { RateLimitingService } from '../rate-limiting/rate-limiting.service';
 import { AppPropertiesService } from '../app-properties/app-properties.service';
 import {
   CachingModule,
   CachingService,
 } from '@hakimamarullah/commonbundle-nestjs';
+import { ApiThrottlerGuardService } from '../api-throttler-guard/api-throttler-guard.service';
 
 @Module({
   providers: [

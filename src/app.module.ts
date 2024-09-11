@@ -3,9 +3,6 @@ import { WilayahModule } from './wilayah/wilayah.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismadbModule } from './prismadb/prismadb.module';
 import { RateLimitingModule } from './rate-limiting/rate-limiting.module';
-import { ThrottlerModule } from '@nestjs/throttler';
-import { RateLimitingService } from './rate-limiting/rate-limiting.service';
-import { PrismaService } from './prismadb/prisma.service';
 
 import { AppPropertiesService } from './app-properties/app-properties.service';
 import { AppPropertiesModule } from './app-properties/app-properties.module';
@@ -19,6 +16,8 @@ import {
   CachingService,
   JwtConfigService,
 } from '@hakimamarullah/commonbundle-nestjs';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { RateLimitingService } from './rate-limiting/rate-limiting.service';
 
 @Module({
   imports: [
@@ -29,8 +28,8 @@ import {
       inject: [JwtConfigService, AppPropertiesService],
     }),
     ThrottlerModule.forRootAsync({
-      imports: [RateLimitingModule, PrismadbModule, AppPropertiesModule],
-      inject: [PrismaService, AppPropertiesService],
+      imports: [RateLimitingModule, AppPropertiesModule],
+      inject: [AppPropertiesService],
       useClass: RateLimitingService,
     }),
     WilayahModule,
