@@ -58,16 +58,6 @@ export class ApiThrottlerGuardService extends ThrottlerGuard {
 
     return true;
   }
-
-  shouldIgnore(url: string) {
-    const ignoredPathPatterns: RegExp[] = this.mapToRegex(['^/api/api-keys/*']);
-    return ignoredPathPatterns.some((pattern) => pattern.test(url));
-  }
-
-  private mapToRegex(paths: string[]): RegExp[] {
-    return paths.map((path) => new RegExp(path));
-  }
-
   private async validateApiKey(apiKey: string | undefined): Promise<any> {
     if (!apiKey) {
       throw new HttpException('missing api key', HttpStatus.FORBIDDEN);
@@ -98,13 +88,11 @@ export class ApiThrottlerGuardService extends ThrottlerGuard {
   }
 
   protected shouldSkip(_context: ExecutionContext): Promise<boolean> {
-    const request = _context.switchToHttp().getRequest<Request>();
-
     const noThrottle = this.reflector.getAllAndOverride<boolean>(NO_THROTTLE, [
       _context.getHandler(),
       _context.getClass(),
     ]);
 
-    return Promise.resolve(this.shouldIgnore(request.url) || noThrottle);
+    return Promise.resolve(noThrottle);
   }
 }
